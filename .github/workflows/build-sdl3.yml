@@ -1,0 +1,48 @@
+
+name: build-sdl3
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v2          
+
+      - name: build
+        id: build
+        shell: cmd
+        run: call build.cmd
+
+      - name: release
+        id: release
+        if: steps.build.outputs.OUTPUT_DATE != ''
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.build.outputs.OUTPUT_DATE }}
+          release_name: ${{ steps.build.outputs.OUTPUT_DATE }}
+          body: |
+            [SDL commit](https://github.com/libsdl-org/SDL/commit/${{ steps.build.outputs.SDL_COMMIT }})
+            [SDL_image commit](https://github.com/libsdl-org/SDL_image/commit/${{ steps.build.outputs.SDL_IMAGE_COMMIT }})
+            [SDL_mixer commit](https://github.com/libsdl-org/SDL_mixer/commit/${{ steps.build.outputs.SDL_MIXER_COMMIT }})
+            [SDL_ttf commit](https://github.com/libsdl-org/SDL_ttf/commit/${{ steps.build.outputs.SDL_TTF_COMMIT }})
+
+      - name: upload
+        id: upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: "SDL3-${{ steps.build.outputs.OUTPUT_DATE }}.zip"
+          asset_name: "SDL3-${{ steps.build.outputs.OUTPUT_DATE }}.zip"
+          asset_content_type: application/zip

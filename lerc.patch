@@ -1,0 +1,16 @@
+diff --git a/src/LercLib/include/Lerc_c_api.h b/src/LercLib/include/Lerc_c_api.h
+index 97ee88c..bf29c3a 100644
+--- a/src/LercLib/include/Lerc_c_api.h
++++ b/src/LercLib/include/Lerc_c_api.h
+@@ -47,9 +47,9 @@ extern "C" {
+ 
+ #if defined _WIN32 || defined __CYGWIN__
+ #  ifdef LERC_EXPORTS
+-#    define LERCDLL_API __declspec(dllexport)
++#    define LERCDLL_API
+ #  else
+-#    define LERCDLL_API __declspec(dllimport)
++#    define LERCDLL_API
+ #  endif
+ #elif __GNUC__ >= 4
+   #define LERCDLL_API __attribute__((visibility("default")))
