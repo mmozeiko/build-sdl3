@@ -14,19 +14,19 @@ set NINJA_VERSION=1.11.1
 
 set ZLIB_VERSION=1.2.13
 set BZIP2_VERSION=1.0.8
-set XZ_VERSION=5.2.8
-set ZSTD_VERSION=1.5.2
+set XZ_VERSION=5.4.1
+set ZSTD_VERSION=1.5.4
 set LIBPNG_VERSION=1.6.39
-set LIBJPEGTURBO_VERSION=2.1.4
+set LIBJPEGTURBO_VERSION=2.1.5.1
 set JBIG_VERSION=2.1
 set LERC_VERSION=3.0
 set TIFF_VERSION=4.5.0
-set LIBWEBP_VERSION=1.2.4
-set DAV1D_VERSION=1.0.0
+set LIBWEBP_VERSION=1.3.0
+set DAV1D_VERSION=1.1.0
 set LIBAVIF_VERSION=0.11.1
-set LIBJXL_VERSION=0.7.0
-set FREETYPE_VERSION=2.12.1
-set HARFBUZZ_VERSION=6.0.0
+set LIBJXL_VERSION=0.8.0
+set FREETYPE_VERSION=2.13.0
+set HARFBUZZ_VERSION=7.0.0
 set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
 set OPUS_VERSION=1.3.1
@@ -185,8 +185,8 @@ call :get "https://download.sourceforge.net/modplug-xmms/libmodplug-%LIBMODPLUG_
 rem libjxl dependencies
 
 set BROTLI_COMMIT=35ef5c5
-set HIGHWAY_COMMIT=22e3d72
-set SKCMS_COMMIT=6437475
+set HIGHWAY_COMMIT=f670ea5
+set SKCMS_COMMIT=b25b07b
 
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
@@ -648,7 +648,7 @@ cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DJXL_STATIC_DEFINE -DNDEBUG -DWIN32 ^
   IMG_jpg.c IMG_jxl.c IMG_lbm.c IMG_pcx.c IMG_png.c IMG_pnm.c IMG_qoi.c IMG_svg.c IMG_tga.c IMG_tif.c IMG_webp.c ^
   IMG_xcf.c IMG_xpm.c IMG_xv.c version.res ^
   -link -dll -opt:icf -opt:ref -out:SDL3_image.dll -libpath:%BUILD%\libjxl-%LIBJXL_VERSION%\build\third_party\brotli\Release ^
-  SDL3.lib avif.lib libdav1d.a jxl_dec-static.lib brotlidec-static.lib brotlicommon-static.lib hwy.lib tiff.lib jpeg-static.lib libpng16_static.lib webp.lib webpdemux.lib jbig.lib lerc.lib zstd_static.lib liblzma.lib zlibstatic.lib ^
+  SDL3.lib avif.lib libdav1d.a jxl_dec-static.lib brotlidec-static.lib brotlicommon-static.lib hwy.lib tiff.lib jpeg-static.lib libpng16_static.lib libsharpyuv.lib libwebp.lib libwebpdemux.lib jbig.lib lerc.lib zstd_static.lib liblzma.lib zlibstatic.lib ^
   || exit /b 1
 copy /y include\SDL3\SDL_image.h %OUTPUT%\include\SDL3\
 copy /y SDL3_image.dll           %OUTPUT%\bin\
@@ -761,7 +761,7 @@ if "%3" equ "" (
   if not exist "%3" mkdir "%3"
   pushd %3
 )
-%SZIP% x -bb0 -y %ARCHIVE% -so | %SZIP% x -bb0 -y -ttar -si -aoa -xr^^!*\tools\benchmark\metrics 1>nul 2>nul
+%SZIP% x -bb0 -y %ARCHIVE% -so | %SZIP% x -bb0 -y -ttar -si -aoa -xr^^!*\tools\benchmark\metrics -xr^^!*\tests\cli-tests 1>nul 2>nul
 if exist pax_global_header del /q pax_global_header
 popd
 goto :eof
