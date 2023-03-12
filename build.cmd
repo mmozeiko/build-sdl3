@@ -24,9 +24,9 @@ set TIFF_VERSION=4.5.0
 set LIBWEBP_VERSION=1.3.0
 set DAV1D_VERSION=1.1.0
 set LIBAVIF_VERSION=0.11.1
-set LIBJXL_VERSION=0.8.0
+set LIBJXL_VERSION=0.8.1
 set FREETYPE_VERSION=2.13.0
-set HARFBUZZ_VERSION=7.0.0
+set HARFBUZZ_VERSION=7.1.0
 set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
 set OPUS_VERSION=1.3.1
@@ -159,7 +159,7 @@ rem
 rem downloading & unpacking
 rem
 
-call :get "https://zlib.net/zlib-%ZLIB_VERSION%.tar.xz"                                                                                || exit /b 1
+call :get "https://github.com/madler/zlib/releases/download/v%ZLIB_VERSION%/zlib-%ZLIB_VERSION%.tar.xz"                                || exit /b 1
 call :get "https://sourceware.org/pub/bzip2/bzip2-%BZIP2_VERSION%.tar.gz"                                                              || exit /b 1
 call :get "https://download.sourceforge.net/lzmautils/xz-%XZ_VERSION%.tar.xz"                                                          || exit /b 1
 call :get "https://github.com/facebook/zstd/releases/download/v%ZSTD_VERSION%/zstd-%ZSTD_VERSION%.tar.gz"                              || exit /b 1
