@@ -15,7 +15,7 @@ set NINJA_VERSION=1.11.1
 set ZLIB_VERSION=1.2.13
 set BZIP2_VERSION=1.0.8
 set XZ_VERSION=5.4.1
-set ZSTD_VERSION=1.5.4
+set ZSTD_VERSION=1.5.5
 set LIBPNG_VERSION=1.6.39
 set LIBJPEGTURBO_VERSION=2.1.5.1
 set JBIG_VERSION=2.1
@@ -29,7 +29,7 @@ set FREETYPE_VERSION=2.13.0
 set HARFBUZZ_VERSION=7.1.0
 set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
-set OPUS_VERSION=1.3.1
+set OPUS_VERSION=1.4
 set OPUSFILE_VERSION=0.12
 set FLAC_VERSION=1.4.2
 set MPG123_VERSION=1.29.3
@@ -174,11 +174,11 @@ call :get "https://github.com/AOMediaCodec/libavif/archive/refs/tags/v%LIBAVIF_V
 call :get "https://github.com/libjxl/libjxl/archive/refs/tags/v%LIBJXL_VERSION%.tar.gz" libjxl-%LIBJXL_VERSION%.tar.gz                 || exit /b 1
 call :get "https://download.savannah.gnu.org/releases/freetype/freetype-%FREETYPE_VERSION%.tar.xz"                                     || exit /b 1
 call :get "https://github.com/harfbuzz/harfbuzz/releases/download/%HARFBUZZ_VERSION%/harfbuzz-%HARFBUZZ_VERSION%.tar.xz"               || exit /b 1
-call :get "https://ftp.osuosl.org/pub/xiph/releases/ogg/libogg-%LIBOGG_VERSION%.tar.xz"                                                || exit /b 1
-call :get "https://ftp.osuosl.org/pub/xiph/releases/vorbis/libvorbis-%LIBVORBIS_VERSION%.tar.xz"                                       || exit /b 1
-call :get "https://ftp.osuosl.org/pub/xiph/releases/opus/opus-%OPUS_VERSION%.tar.gz"                                                   || exit /b 1
-call :get "https://ftp.osuosl.org/pub/xiph/releases/opus/opusfile-%OPUSFILE_VERSION%.tar.gz"                                           || exit /b 1
-call :get "https://github.com/xiph/flac/archive/refs/tags/%FLAC_VERSION%.tar.gz" flac-%FLAC_VERSION%.tar.gz                            || exit /b 1
+call :get "https://downloads.xiph.org/releases/ogg/libogg-%LIBOGG_VERSION%.tar.xz"                                                     || exit /b 1
+call :get "https://downloads.xiph.org/releases/vorbis/libvorbis-%LIBVORBIS_VERSION%.tar.xz"                                            || exit /b 1
+call :get "https://downloads.xiph.org/releases/opus/opus-%OPUS_VERSION%.tar.gz"                                                        || exit /b 1
+call :get "https://downloads.xiph.org/releases/opus/opusfile-%OPUSFILE_VERSION%.tar.gz"                                                || exit /b 1
+call :get "https://downloads.xiph.org/releases/flac/flac-%FLAC_VERSION%.tar.xz"                                                        || exit /b 1
 call :get "https://download.sourceforge.net/mpg123/mpg123-%MPG123_VERSION%.tar.bz2"                                                    || exit /b 1
 call :get "https://download.sourceforge.net/modplug-xmms/libmodplug-%LIBMODPLUG_VERSION%.tar.gz"                                       || exit /b 1
 
