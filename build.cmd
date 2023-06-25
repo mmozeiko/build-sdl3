@@ -14,24 +14,24 @@ set NINJA_VERSION=1.11.1
 
 set ZLIB_VERSION=1.2.13
 set BZIP2_VERSION=1.0.8
-set XZ_VERSION=5.4.1
+set XZ_VERSION=5.4.3
 set ZSTD_VERSION=1.5.5
 set LIBPNG_VERSION=1.6.39
 set LIBJPEGTURBO_VERSION=2.1.5.1
 set JBIG_VERSION=2.1
 set LERC_VERSION=3.0
-set TIFF_VERSION=4.5.0
+set TIFF_VERSION=4.5.1
 set LIBWEBP_VERSION=1.3.0
-set DAV1D_VERSION=1.1.0
+set DAV1D_VERSION=1.2.1
 set LIBAVIF_VERSION=0.11.1
-set LIBJXL_VERSION=0.8.1
-set FREETYPE_VERSION=2.13.0
-set HARFBUZZ_VERSION=7.1.0
+set LIBJXL_VERSION=0.8.2
+set FREETYPE_VERSION=2.13.1
+set HARFBUZZ_VERSION=7.3.0
 set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
 set OPUS_VERSION=1.4
 set OPUSFILE_VERSION=0.12
-set FLAC_VERSION=1.4.2
+set FLAC_VERSION=1.4.3
 set MPG123_VERSION=1.29.3
 set LIBMODPLUG_VERSION=0.8.9.0
 
@@ -363,7 +363,6 @@ rem tiff
 rem dependencies: libjpeg-turbo, libwebp, jbig, lerc, zstd, xz, zlib
 rem
 
-git apply --directory=build/tiff-%TIFF_VERSION% tiff.patch || exit /b 1
 cmake.exe -Wno-dev                           ^
   -S %BUILD%\tiff-%TIFF_VERSION%             ^
   -B %BUILD%\tiff-%TIFF_VERSION%             ^
@@ -641,12 +640,12 @@ rem dependencies: avif, libjxl, tiff, libjpeg-turbo, libpng, libwebp
 rem
 
 pushd %BUILD%\SDL_image
-rc.exe -nologo version.rc || exit /b 1
+rc.exe -nologo src\version.rc || exit /b 1
 cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DJXL_STATIC_DEFINE -DNDEBUG -DWIN32 ^
   -DLOAD_AVIF -DLOAD_BMP -DLOAD_GIF -DLOAD_JPG -DLOAD_JXL -DLOAD_LBM -DLOAD_PCX -DLOAD_PNG -DLOAD_PNM -DLOAD_QOI ^
-  -DLOAD_SVG -DLOAD_TGA -DLOAD_TIF -DLOAD_WEBP -DLOAD_XCF -DLOAD_XPM -DLOAD_XV IMG.c IMG_avif.c IMG_bmp.c IMG_gif.c ^
-  IMG_jpg.c IMG_jxl.c IMG_lbm.c IMG_pcx.c IMG_png.c IMG_pnm.c IMG_qoi.c IMG_svg.c IMG_tga.c IMG_tif.c IMG_webp.c ^
-  IMG_xcf.c IMG_xpm.c IMG_xv.c version.res ^
+  -DLOAD_SVG -DLOAD_TGA -DLOAD_TIF -DLOAD_WEBP -DLOAD_XCF -DLOAD_XPM -DLOAD_XV src\IMG.c src\IMG_avif.c src\IMG_bmp.c ^
+  src\IMG_gif.c src\IMG_jpg.c src\IMG_jxl.c src\IMG_lbm.c src\IMG_pcx.c src\IMG_png.c src\IMG_pnm.c src\IMG_qoi.c ^
+  src\IMG_svg.c src\IMG_tga.c src\IMG_tif.c src\IMG_webp.c src\IMG_xcf.c src\IMG_xpm.c src\IMG_xv.c src\version.res ^
   -link -dll -opt:icf -opt:ref -out:SDL3_image.dll -libpath:%BUILD%\libjxl-%LIBJXL_VERSION%\build\third_party\brotli\Release ^
   SDL3.lib avif.lib libdav1d.a jxl_dec-static.lib brotlidec-static.lib brotlicommon-static.lib hwy.lib tiff.lib jpeg-static.lib libpng16_static.lib libsharpyuv.lib libwebp.lib libwebpdemux.lib jbig.lib lerc.lib zstd_static.lib liblzma.lib zlibstatic.lib ^
   || exit /b 1
