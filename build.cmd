@@ -16,17 +16,17 @@ set ZLIB_VERSION=1.2.13
 set BZIP2_VERSION=1.0.8
 set XZ_VERSION=5.4.3
 set ZSTD_VERSION=1.5.5
-set LIBPNG_VERSION=1.6.39
-set LIBJPEGTURBO_VERSION=2.1.5.1
+set LIBPNG_VERSION=1.6.40
+set LIBJPEGTURBO_VERSION=3.0.0
 set JBIG_VERSION=2.1
-set LERC_VERSION=3.0
+set LERC_VERSION=4.0.0
 set TIFF_VERSION=4.5.1
-set LIBWEBP_VERSION=1.3.0
+set LIBWEBP_VERSION=1.3.1
 set DAV1D_VERSION=1.2.1
 set LIBAVIF_VERSION=0.11.1
 set LIBJXL_VERSION=0.8.2
 set FREETYPE_VERSION=2.13.1
-set HARFBUZZ_VERSION=7.3.0
+set HARFBUZZ_VERSION=8.0.1
 set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
 set OPUS_VERSION=1.4
@@ -202,6 +202,7 @@ call :clone SDL       "https://github.com/libsdl-org/SDL"       main || exit /b 
 call :clone SDL_image "https://github.com/libsdl-org/SDL_image" main || exit /b 1
 call :clone SDL_mixer "https://github.com/libsdl-org/SDL_mixer" main || exit /b 1
 call :clone SDL_ttf   "https://github.com/libsdl-org/SDL_ttf"   main || exit /b 1
+call :clone SDL_rtf   "https://github.com/libsdl-org/SDL_rtf"   main || exit /b 1
 
 rem
 rem zlib
@@ -350,13 +351,17 @@ rem
 rem lerc
 rem
 
-git apply --directory=build/lerc-%LERC_VERSION% lerc.patch || exit /b 1
-pushd %BUILD%\lerc-%LERC_VERSION%
-cl.exe -c -MP -MT -O2 -EHsc -DNDEBUG -DLERC_STATIC -Iinclude src/LercLib/*.cpp src/LercLib/Lerc1Decode/*.cpp || exit /b 1
-lib.exe -nologo -out:lerc.lib *.obj || exit /b 1
-copy /y lerc.lib                         %DEPEND%\lib\
-copy /y src\LercLib\include\Lerc_c_api.h %DEPEND%\include\
-popd
+cmake.exe -Wno-dev                           ^
+  -S %BUILD%\lerc-%LERC_VERSION%             ^
+  -B %BUILD%\lerc-%LERC_VERSION%             ^
+  -A x64 -T host=x64                         ^
+  -G %MSVC_GENERATOR%                        ^
+  -DCMAKE_INSTALL_PREFIX=%DEPEND%            ^
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
+  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
+  -DBUILD_SHARED_LIBS=OFF                    ^
+  || exit /b 1
+cmake.exe --build %BUILD%\lerc-%LERC_VERSION% --config Release --target install || exit /b 1
 
 rem
 rem tiff
@@ -660,10 +665,10 @@ rem dependencies: libmodplug, mpg123, flac, opusfile, vorbis
 rem
 
 pushd %BUILD%\SDL_mixer
-rc.exe -nologo version.rc || exit /b 1
+rc.exe -nologo src\version.rc || exit /b 1
 cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DNDEBUG -DWIN32 -DMODPLUG_BUILD -DMODPLUG_STATIC -DFLAC__NO_DLL ^
   -DMUSIC_WAV -DMUSIC_MOD_MODPLUG -DMUSIC_OGG -DMUSIC_OPUS -DMUSIC_FLAC -DMUSIC_MP3_MPG123 -DMUSIC_MID_TIMIDITY -DMUSIC_MID_NATIVE ^
-  src\*.c src\codecs\*.c src\codecs\timidity\*.c src\codecs\native_midi\native_midi_common.c src\codecs\native_midi\native_midi_win32.c version.res ^
+  src\*.c src\codecs\*.c src\codecs\timidity\*.c src\codecs\native_midi\native_midi_common.c src\codecs\native_midi\native_midi_win32.c src\version.res ^
   -Iinclude -Isrc -Isrc\codecs -I%DEPEND%\include\opus ^
   -link -dll -opt:icf -opt:ref -out:SDL3_mixer.dll ^
   SDL3.lib libmodplug.lib mpg123.lib flac.lib opusfile.lib opus.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib user32.lib shlwapi.lib ^
@@ -679,9 +684,9 @@ rem dependencies: freetype, harfbuzz
 rem
 
 pushd %BUILD%\SDL_ttf
-rc.exe -nologo version.rc || exit /b 1
+rc.exe -nologo src\version.rc || exit /b 1
 cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DNDEBUG -DWIN32 -DTTF_USE_HARFBUZZ=1 ^
-  SDL_ttf.c version.res ^
+  src\SDL_ttf.c src\version.res ^
   -I%DEPEND%\include\freetype2 -I%DEPEND%\include\harfbuzz ^
   -link -dll -opt:icf -opt:ref -out:SDL3_ttf.dll ^
   SDL3.lib harfbuzz.lib freetype.lib libpng16_static.lib libbz2.lib zlibstatic.lib ^
@@ -692,6 +697,21 @@ copy /y SDL3_ttf.lib           %OUTPUT%\lib\
 popd	
 
 rem
+rem SDL_rtf
+rem
+
+pushd %BUILD%\SDL_rtf
+rc.exe -nologo src\version.rc || exit /b 1
+cl.exe -MP -MT -O2 -DDLL_EXPORT -DNDEBUG -DWIN32 ^
+  -Iinclude src\*.c src\version.res ^
+  -link -dll -opt:icf -opt:ref -out:SDL3_rtf.dll SDL3.lib ^
+  || exit /b 1
+copy /y include\SDL3\SDL_rtf.h %OUTPUT%\include\SDL3\
+copy /y SDL3_rtf.dll           %OUTPUT%\bin\
+copy /y SDL3_rtf.lib           %OUTPUT%\lib\
+popd
+
+rem
 rem output commits
 rem
 
@@ -699,11 +719,13 @@ set /p SDL_COMMIT=<%BUILD%\SDL\.git\refs\heads\main
 set /p SDL_IMAGE_COMMIT=<%BUILD%\SDL_image\.git\refs\heads\main
 set /p SDL_MIXER_COMMIT=<%BUILD%\SDL_mixer\.git\refs\heads\main
 set /p SDL_TTF_COMMIT=<%BUILD%\SDL_ttf\.git\refs\heads\main
+set /p SDL_RTF_COMMIT=<%BUILD%\SDL_rtf\.git\refs\heads\main
 
 echo SDL commit %SDL_COMMIT% > %OUTPUT%\commits.txt
 echo SDL_image commit %SDL_IMAGE_COMMIT% >> %OUTPUT%\commits.txt
 echo SDL_mixer commit %SDL_MIXER_COMMIT% >> %OUTPUT%\commits.txt
 echo SDL_ttf commit %SDL_TTF_COMMIT% >> %OUTPUT%\commits.txt
+echo SDL_rtf commit %SDL_RTF_COMMIT% >> %OUTPUT%\commits.txt
 
 rem
 rem GitHub actions stuff
@@ -724,6 +746,7 @@ if "%GITHUB_WORKFLOW%" neq "" (
   echo ::set-output name=SDL_IMAGE_COMMIT::%SDL_IMAGE_COMMIT%
   echo ::set-output name=SDL_MIXER_COMMIT::%SDL_MIXER_COMMIT%
   echo ::set-output name=SDL_TTF_COMMIT::%SDL_TTF_COMMIT%
+  echo ::set-output name=SDL_RTF_COMMIT::%SDL_RTF_COMMIT%
 )
 
 rem
@@ -775,7 +798,8 @@ if exist %1 (
   echo Updating %1
   pushd %1
   call git clean --quiet -fdx
-  call git pull --quiet --force --no-tags --depth 1 || exit /b 1
+  call git fetch --quiet --no-tags origin %3:refs/remotes/origin/%3 || exit /b 1
+  call git reset --quiet --hard origin/%3 || exit /b 1
   popd
 ) else (
   echo Cloning %1

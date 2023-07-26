@@ -35,6 +35,7 @@ jobs:
             [SDL_image commit](https://github.com/libsdl-org/SDL_image/commit/${{ steps.build.outputs.SDL_IMAGE_COMMIT }})
             [SDL_mixer commit](https://github.com/libsdl-org/SDL_mixer/commit/${{ steps.build.outputs.SDL_MIXER_COMMIT }})
             [SDL_ttf commit](https://github.com/libsdl-org/SDL_ttf/commit/${{ steps.build.outputs.SDL_TTF_COMMIT }})
+            [SDL_rtf commit](https://github.com/libsdl-org/SDL_rtf/commit/${{ steps.build.outputs.SDL_RTF_COMMIT }})
 
       - name: upload
         id: upload
