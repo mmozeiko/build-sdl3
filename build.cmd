@@ -8,7 +8,7 @@ rem
 rem Required dependencies
 rem
 
-set NASM_VERSION=2.15.05
+set NASM_VERSION=2.16.01
 set YASM_VERSION=1.3.0
 set NINJA_VERSION=1.11.1
 
