@@ -654,9 +654,9 @@ cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DJXL_STATIC_DEFINE -DNDEBUG -DWIN32 ^
   -link -dll -opt:icf -opt:ref -out:SDL3_image.dll -libpath:%BUILD%\libjxl-%LIBJXL_VERSION%\build\third_party\brotli\Release ^
   SDL3.lib avif.lib libdav1d.a jxl_dec-static.lib brotlidec-static.lib brotlicommon-static.lib hwy.lib tiff.lib jpeg-static.lib libpng16_static.lib libsharpyuv.lib libwebp.lib libwebpdemux.lib jbig.lib lerc.lib zstd_static.lib liblzma.lib zlibstatic.lib ^
   || exit /b 1
-copy /y include\SDL3\SDL_image.h %OUTPUT%\include\SDL3\
-copy /y SDL3_image.dll           %OUTPUT%\bin\
-copy /y SDL3_image.lib           %OUTPUT%\lib\
+copy /y include\SDL3_image\SDL_image.h %OUTPUT%\include\SDL3\
+copy /y SDL3_image.dll                 %OUTPUT%\bin\
+copy /y SDL3_image.lib                 %OUTPUT%\lib\
 popd	
 
 rem
@@ -673,9 +673,9 @@ cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DNDEBUG -DWIN32 -DMODPLUG_BUILD -DMOD
   -link -dll -opt:icf -opt:ref -out:SDL3_mixer.dll ^
   SDL3.lib libmodplug.lib mpg123.lib flac.lib opusfile.lib opus.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib user32.lib shlwapi.lib ^
   || exit /b 1
-copy /y include\SDL3\SDL_mixer.h %OUTPUT%\include\SDL3\
-copy /y SDL3_mixer.dll           %OUTPUT%\bin\
-copy /y SDL3_mixer.lib           %OUTPUT%\lib\
+copy /y include\SDL3_mixer\SDL_mixer.h %OUTPUT%\include\SDL3\
+copy /y SDL3_mixer.dll                 %OUTPUT%\bin\
+copy /y SDL3_mixer.lib                 %OUTPUT%\lib\
 popd	
 
 rem
@@ -691,9 +691,9 @@ cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DNDEBUG -DWIN32 -DTTF_USE_HARFBUZZ=1 
   -link -dll -opt:icf -opt:ref -out:SDL3_ttf.dll ^
   SDL3.lib harfbuzz.lib freetype.lib libpng16_static.lib libbz2.lib zlibstatic.lib ^
   || exit /b 1
-copy /y include\SDL3\SDL_ttf.h %OUTPUT%\include\SDL3\
-copy /y SDL3_ttf.dll           %OUTPUT%\bin\
-copy /y SDL3_ttf.lib           %OUTPUT%\lib\
+copy /y include\SDL3_ttf\SDL_ttf.h %OUTPUT%\include\SDL3\
+copy /y SDL3_ttf.dll               %OUTPUT%\bin\
+copy /y SDL3_ttf.lib               %OUTPUT%\lib\
 popd	
 
 rem
@@ -706,9 +706,9 @@ cl.exe -MP -MT -O2 -DDLL_EXPORT -DNDEBUG -DWIN32 ^
   -Iinclude src\*.c src\version.res ^
   -link -dll -opt:icf -opt:ref -out:SDL3_rtf.dll SDL3.lib ^
   || exit /b 1
-copy /y include\SDL3\SDL_rtf.h %OUTPUT%\include\SDL3\
-copy /y SDL3_rtf.dll           %OUTPUT%\bin\
-copy /y SDL3_rtf.lib           %OUTPUT%\lib\
+copy /y include\SDL3_rtf\SDL_rtf.h %OUTPUT%\include\SDL3\
+copy /y SDL3_rtf.dll               %OUTPUT%\bin\
+copy /y SDL3_rtf.lib               %OUTPUT%\lib\
 popd
 
 rem
