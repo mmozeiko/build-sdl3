@@ -20,13 +20,13 @@ set LIBPNG_VERSION=1.6.40
 set LIBJPEGTURBO_VERSION=3.0.0
 set JBIG_VERSION=2.1
 set LERC_VERSION=4.0.0
-set TIFF_VERSION=4.5.1
-set LIBWEBP_VERSION=1.3.1
+set TIFF_VERSION=4.6.0
+set LIBWEBP_VERSION=1.3.2
 set DAV1D_VERSION=1.2.1
-set LIBAVIF_VERSION=1.0.0
+set LIBAVIF_VERSION=1.0.1
 set LIBJXL_VERSION=0.8.2
-set FREETYPE_VERSION=2.13.1
-set HARFBUZZ_VERSION=8.0.1
+set FREETYPE_VERSION=2.13.2
+set HARFBUZZ_VERSION=8.2.1
 set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
 set OPUS_VERSION=1.4
@@ -203,6 +203,7 @@ call :clone SDL_image "https://github.com/libsdl-org/SDL_image" main || exit /b 
 call :clone SDL_mixer "https://github.com/libsdl-org/SDL_mixer" main || exit /b 1
 call :clone SDL_ttf   "https://github.com/libsdl-org/SDL_ttf"   main || exit /b 1
 call :clone SDL_rtf   "https://github.com/libsdl-org/SDL_rtf"   main || exit /b 1
+call :clone SDL_net   "https://github.com/libsdl-org/SDL_net"   main || exit /b 1
 
 rem
 rem zlib
@@ -712,6 +713,22 @@ copy /y SDL3_rtf.lib               %OUTPUT%\lib\
 popd
 
 rem
+rem SDL_net
+rem
+
+pushd %BUILD%\SDL_net
+rc.exe -nologo src\version.rc || exit /b 1
+cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DNDEBUG -DWIN32 ^
+  src\SDL_net.c src\version.res ^
+  -link -dll -opt:icf -opt:ref -out:SDL3_net.dll SDL3.lib ws2_32.lib iphlpapi.lib ^
+  || exit /b 1
+copy /y include\SDL3_net\SDL_net.h %OUTPUT%\include\SDL3\
+copy /y SDL3_net.dll               %OUTPUT%\bin\
+copy /y SDL3_net.lib               %OUTPUT%\lib\
+popd
+
+
+rem
 rem output commits
 rem
 
@@ -720,12 +737,14 @@ set /p SDL_IMAGE_COMMIT=<%BUILD%\SDL_image\.git\refs\heads\main
 set /p SDL_MIXER_COMMIT=<%BUILD%\SDL_mixer\.git\refs\heads\main
 set /p SDL_TTF_COMMIT=<%BUILD%\SDL_ttf\.git\refs\heads\main
 set /p SDL_RTF_COMMIT=<%BUILD%\SDL_rtf\.git\refs\heads\main
+set /p SDL_NET_COMMIT=<%BUILD%\SDL_net\.git\refs\heads\main
 
 echo SDL commit %SDL_COMMIT% > %OUTPUT%\commits.txt
 echo SDL_image commit %SDL_IMAGE_COMMIT% >> %OUTPUT%\commits.txt
 echo SDL_mixer commit %SDL_MIXER_COMMIT% >> %OUTPUT%\commits.txt
 echo SDL_ttf commit %SDL_TTF_COMMIT% >> %OUTPUT%\commits.txt
 echo SDL_rtf commit %SDL_RTF_COMMIT% >> %OUTPUT%\commits.txt
+echo SDL_net commit %SDL_NET_COMMIT% >> %OUTPUT%\commits.txt
 
 rem
 rem GitHub actions stuff
@@ -747,6 +766,7 @@ if "%GITHUB_WORKFLOW%" neq "" (
   echo ::set-output name=SDL_MIXER_COMMIT::%SDL_MIXER_COMMIT%
   echo ::set-output name=SDL_TTF_COMMIT::%SDL_TTF_COMMIT%
   echo ::set-output name=SDL_RTF_COMMIT::%SDL_RTF_COMMIT%
+  echo ::set-output name=SDL_NET_COMMIT::%SDL_NET_COMMIT%
 )
 
 rem
