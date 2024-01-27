@@ -12,21 +12,21 @@ set NASM_VERSION=2.16.01
 set YASM_VERSION=1.3.0
 set NINJA_VERSION=1.11.1
 
-set ZLIB_VERSION=1.3
+set ZLIB_VERSION=1.3.1
 set BZIP2_VERSION=1.0.8
-set XZ_VERSION=5.4.3
+set XZ_VERSION=5.4.6
 set ZSTD_VERSION=1.5.5
-set LIBPNG_VERSION=1.6.40
+set LIBPNG_VERSION=1.6.41
 set LIBJPEGTURBO_VERSION=3.0.0
 set JBIG_VERSION=2.1
 set LERC_VERSION=4.0.0
 set TIFF_VERSION=4.6.0
 set LIBWEBP_VERSION=1.3.2
-set DAV1D_VERSION=1.2.1
-set LIBAVIF_VERSION=1.0.1
-set LIBJXL_VERSION=0.8.2
+set DAV1D_VERSION=1.3.0
+set LIBAVIF_VERSION=1.0.2
+set LIBJXL_VERSION=0.9.1
 set FREETYPE_VERSION=2.13.2
-set HARFBUZZ_VERSION=8.2.1
+set HARFBUZZ_VERSION=8.3.0
 set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
 set OPUS_VERSION=1.4
@@ -184,9 +184,9 @@ call :get "https://download.sourceforge.net/modplug-xmms/libmodplug-%LIBMODPLUG_
 
 rem libjxl dependencies
 
-set BROTLI_COMMIT=35ef5c5
-set HIGHWAY_COMMIT=f670ea5
-set SKCMS_COMMIT=b25b07b
+set BROTLI_COMMIT=36533a8
+set HIGHWAY_COMMIT=ba0900a
+set SKCMS_COMMIT=42030a7
 
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
@@ -648,12 +648,16 @@ rem
 pushd %BUILD%\SDL_image
 rc.exe -nologo src\version.rc || exit /b 1
 cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DJXL_STATIC_DEFINE -DNDEBUG -DWIN32 ^
+  -DSDL_PROPERTY_SURFACE_COLOR_PRIMARIES_NUMBER=SDL_PROP_SURFACE_COLOR_PRIMARIES_NUMBER ^
+  -DSDL_PROPERTY_SURFACE_TRANSFER_CHARACTERISTICS_NUMBER=SDL_PROP_SURFACE_TRANSFER_CHARACTERISTICS_NUMBER ^
+  -DSDL_PROPERTY_SURFACE_MAXCLL_NUMBER=SDL_PROP_SURFACE_MAXCLL_NUMBER ^
+  -DSDL_PROPERTY_SURFACE_MAXFALL_NUMBER=SDL_PROP_SURFACE_MAXFALL_NUMBER ^
   -DLOAD_AVIF -DLOAD_BMP -DLOAD_GIF -DLOAD_JPG -DLOAD_JXL -DLOAD_LBM -DLOAD_PCX -DLOAD_PNG -DLOAD_PNM -DLOAD_QOI ^
   -DLOAD_SVG -DLOAD_TGA -DLOAD_TIF -DLOAD_WEBP -DLOAD_XCF -DLOAD_XPM -DLOAD_XV src\IMG.c src\IMG_avif.c src\IMG_bmp.c ^
   src\IMG_gif.c src\IMG_jpg.c src\IMG_jxl.c src\IMG_lbm.c src\IMG_pcx.c src\IMG_png.c src\IMG_pnm.c src\IMG_qoi.c ^
   src\IMG_svg.c src\IMG_tga.c src\IMG_tif.c src\IMG_webp.c src\IMG_xcf.c src\IMG_xpm.c src\IMG_xv.c src\version.res ^
   -link -dll -opt:icf -opt:ref -out:SDL3_image.dll -libpath:%BUILD%\libjxl-%LIBJXL_VERSION%\build\third_party\brotli\Release ^
-  SDL3.lib avif.lib libdav1d.a jxl_dec-static.lib brotlidec-static.lib brotlicommon-static.lib hwy.lib tiff.lib jpeg-static.lib libpng16_static.lib libsharpyuv.lib libwebp.lib libwebpdemux.lib jbig.lib lerc.lib zstd_static.lib liblzma.lib zlibstatic.lib ^
+  SDL3.lib avif.lib libdav1d.a jxl.lib brotlicommon.lib brotlidec.lib hwy.lib tiff.lib jpeg-static.lib libpng16_static.lib libsharpyuv.lib libwebp.lib libwebpdemux.lib jbig.lib lerc.lib zstd_static.lib liblzma.lib zlibstatic.lib ^
   || exit /b 1
 copy /y include\SDL3_image\SDL_image.h %OUTPUT%\include\SDL3\
 copy /y SDL3_image.dll                 %OUTPUT%\bin\
@@ -803,7 +807,7 @@ if "%3" equ "" (
   if not exist "%3" mkdir "%3"
   pushd %3
 )
-%SZIP% x -bb0 -y %ARCHIVE% -so | %SZIP% x -bb0 -y -ttar -si -aoa -xr^^!*\tools\benchmark\metrics -xr^^!*\tests\cli-tests 1>nul 2>nul
+%SZIP% x -bb0 -y %ARCHIVE% -so | %SZIP% x -bb0 -y -ttar -si -aoa -xr^^!*\tools\benchmark\metrics -xr^^!*\tests\cli-tests -xr^^!*\lib\lib.gni 1>nul 2>nul
 if exist pax_global_header del /q pax_global_header
 popd
 goto :eof
