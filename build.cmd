@@ -633,6 +633,7 @@ cmake.exe -Wno-dev                           ^
   -B %BUILD%\SDL\build                       ^
   -A x64 -T host=x64                         ^
   -G %MSVC_GENERATOR%                        ^
+  -DSDL_DISABLE_INSTALL_DOCS=ON              ^
   -DCMAKE_INSTALL_PREFIX=%OUTPUT%            ^
   -DCMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
