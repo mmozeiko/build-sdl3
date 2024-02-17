@@ -24,9 +24,9 @@ set TIFF_VERSION=4.6.0
 set LIBWEBP_VERSION=1.3.2
 set AOM_VERSION=3.8.1
 set LIBYUV_VERSION=464c51a
-set DAV1D_VERSION=1.3.0
-set LIBAVIF_VERSION=1.0.3
-set LIBJXL_VERSION=0.9.1
+set DAV1D_VERSION=1.4.0
+set LIBAVIF_VERSION=1.0.4
+set LIBJXL_VERSION=0.9.2
 set FREETYPE_VERSION=2.13.2
 set HARFBUZZ_VERSION=8.3.0
 set LIBOGG_VERSION=1.3.5
@@ -522,6 +522,9 @@ cmake.exe -Wno-dev                           ^
   -DJPEGXL_ENABLE_OPENEXR=false              ^
   -DJPEGXL_ENABLE_PLUGINS=false              ^
   -DJPEGXL_ENABLE_SKCMS=true                 ^
+  -DJPEGXL_ENABLE_AVX512=true                ^
+  -DJPEGXL_ENABLE_AVX512_SPR=true            ^
+  -DJPEGXL_ENABLE_AVX512_ZEN4=true           ^
   || exit /b 1
 cmake.exe --build %BUILD%\libjxl-%LIBJXL_VERSION%\build --config Release --target install --parallel || exit /b 1
 
