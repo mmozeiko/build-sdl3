@@ -35,7 +35,8 @@ set OPUS_VERSION=1.4
 set OPUSFILE_VERSION=0.12
 set FLAC_VERSION=1.4.3
 set MPG123_VERSION=1.32.5
-set LIBMODPLUG_VERSION=0.8.9.0
+set LIBXMP_VERSION=4.6.0
+set WAVPACK_VERSION=5.6.0
 
 rem libjxl dependencies
 
@@ -162,9 +163,9 @@ if not exist %DEPEND%   mkdir %DEPEND%
 if not exist %DOWNLOAD% mkdir %DOWNLOAD%
 if not exist %BUILD%    mkdir %BUILD%
 
-set CL=-MP -I%OUTPUT%\include -I%OUTPUT%\include\SDL3 -I%DEPEND%\include ^
-  -wd4244 -wd4267 -wd4996 -wd4305 -wd4311 -wd4005 -wd4018 -wd4068 ^
-  -wd4146 -wd4334 -wd4312 -wd4090 -wd4180 -wd4806 -wd4646 -wd4805
+set CL=-MP -I%OUTPUT%\include -I%OUTPUT%\include\SDL3 -I%DEPEND%\include  ^
+  -wd4244 -wd4267 -wd4996 -wd4305 -wd4311 -wd4005 -wd4018 -wd4068 -wd4146 ^
+  -wd4334 -wd4312 -wd4090 -wd4180 -wd4806 -wd4646 -wd4805 -wd4389
 set LINK=-incremental:no -libpath:%OUTPUT%\lib -libpath:%DEPEND%\lib
 
 rem
@@ -194,7 +195,8 @@ call :get "https://downloads.xiph.org/releases/opus/opus-%OPUS_VERSION%.tar.gz" 
 call :get "https://downloads.xiph.org/releases/opus/opusfile-%OPUSFILE_VERSION%.tar.gz"                                                                     || exit /b 1
 call :get "https://downloads.xiph.org/releases/flac/flac-%FLAC_VERSION%.tar.xz"                                                                             || exit /b 1
 call :get "https://download.sourceforge.net/mpg123/mpg123-%MPG123_VERSION%.tar.bz2"                                                                         || exit /b 1
-call :get "https://download.sourceforge.net/modplug-xmms/libmodplug-%LIBMODPLUG_VERSION%.tar.gz"                                                            || exit /b 1
+call :get "https://github.com/libxmp/libxmp/releases/download/libxmp-%LIBXMP_VERSION%/libxmp-%LIBXMP_VERSION%.tar.gz"                                       || exit /b 1
+call :get "https://github.com/dbry/WavPack/archive/refs/tags/%WAVPACK_VERSION%.tar.gz" WavPack-%WAVPACK_VERSION%.tar.gz                                     || exit /b 1
 
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
@@ -505,6 +507,7 @@ cmake.exe -Wno-dev                           ^
   -DJPEGXL_STATIC=true                       ^
   -DJPEGXL_WARNINGS_AS_ERRORS=false          ^
   -DJPEGXL_ENABLE_TOOLS=false                ^
+  -DJPEGXL_ENABLE_DOXYGEN=false              ^
   -DJPEGXL_ENABLE_MANPAGES=false             ^
   -DJPEGXL_ENABLE_BENCHMARK=false            ^
   -DJPEGXL_ENABLE_EXAMPLES=false             ^
@@ -572,6 +575,7 @@ cmake.exe -Wno-dev                           ^
   -DCMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
   -DBUILD_SHARED_LIBS=OFF                    ^
+  -DINSTALL_DOCS=OFF                         ^
   || exit /b 1
 cmake.exe --build %BUILD%\libogg-%LIBOGG_VERSION% --config Release --target install --parallel || exit /b 1
 
@@ -663,16 +667,44 @@ cmake.exe -Wno-dev                               ^
 cmake.exe --build %BUILD%\mpg123-%MPG123_VERSION% --config Release --target install --parallel || exit /b 1
 
 rem
-rem libmodplug
+rem libxmp
 rem
 
-pushd %BUILD%\libmodplug-%LIBMODPLUG_VERSION%
-cl.exe -c -MP -MT -O2 -DNDEBUG -DMODPLUG_BUILD -DMODPLUG_STATIC -I src\libmodplug src\*.cpp || exit /b 1
-lib.exe -nologo -out:libmodplug.lib *.obj || exit /b 1
-mkdir %DEPEND%\include\libmodplug
-copy /y libmodplug.lib %DEPEND%\lib\
-copy /y src\modplug.h  %DEPEND%\include\libmodplug\
-popd
+cmake.exe -Wno-dev                               ^
+  -S %BUILD%\libxmp-%LIBXMP_VERSION%             ^
+  -B %BUILD%\libxmp-%LIBXMP_VERSION%             ^
+  -A x64 -T host=x64                             ^
+  -G %MSVC_GENERATOR%                            ^
+  -DCMAKE_INSTALL_PREFIX=%DEPEND%                ^
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW             ^
+  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded     ^
+  -DBUILD_STATIC=ON                              ^
+  -DBUILD_SHARED=OFF                             ^
+  -DLIBXMP_DOCS=OFF                              ^
+  || exit /b 1
+cmake.exe --build %BUILD%\libxmp-%LIBXMP_VERSION% --config Release --target install --parallel || exit /b 1
+
+rem
+rem wavpack
+rem
+
+cmake.exe -Wno-dev                           ^
+  -S %BUILD%\WavPack-%WAVPACK_VERSION%       ^
+  -B %BUILD%\WavPack-%WAVPACK_VERSION%       ^
+  -A x64 -T host=x64                         ^
+  -G %MSVC_GENERATOR%                        ^
+  -DCMAKE_ASM_COMPILER=ml64.exe              ^
+  -DCMAKE_INSTALL_PREFIX=%DEPEND%            ^
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
+  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
+  -DWAVPACK_INSTALL_DOCS=OFF                 ^
+  -DWAVPACK_ENABLE_LIBCRYPTO=OFF             ^
+  -DWAVPACK_BUILD_PROGRAMS=OFF               ^
+  -DWAVPACK_BUILD_COOLEDIT_PLUGIN=OFF        ^
+  -DWAVPACK_BUILD_WINAMP_PLUGIN=OFF          ^
+  -DBUILD_SHARED_LIBS=OFF                    ^
+  || exit /b 1
+cmake.exe --build %BUILD%\WavPack-%WAVPACK_VERSION% --config Release --target install --parallel || exit /b 1
 
 rem
 rem SDL
@@ -715,17 +747,17 @@ popd
 
 rem
 rem SDL_mixer
-rem dependencies: libmodplug, mpg123, flac, opusfile, vorbis
+rem dependencies: libxmp, mpg123, flac, opusfile, vorbis, wavpack
 rem
 
 pushd %BUILD%\SDL_mixer
 rc.exe -nologo src\version.rc || exit /b 1
-cl.exe -MP -MT -O2 -Iinclude -DDLL_EXPORT -DNDEBUG -DWIN32 -DMODPLUG_BUILD -DMODPLUG_STATIC -DFLAC__NO_DLL ^
-  -DMUSIC_WAV -DMUSIC_MOD_MODPLUG -DMUSIC_OGG -DMUSIC_OPUS -DMUSIC_FLAC -DMUSIC_MP3_MPG123 -DMUSIC_MID_TIMIDITY -DMUSIC_MID_NATIVE ^
+cl.exe -MP -MT -O2 -Iinclude -DDECLSPEC=__declspec(dllexport) -DNDEBUG -DWIN32 -DLIBXMP_STATIC -DFLAC__NO_DLL ^
+  -DMUSIC_WAV -DMUSIC_MOD_XMP -DMUSIC_OGG -DMUSIC_OPUS -DMUSIC_FLAC_LIBFLAC -DMUSIC_WAVPACK -DMUSIC_MP3_MPG123 -DMUSIC_MID_TIMIDITY -DMUSIC_MID_NATIVE ^
   src\*.c src\codecs\*.c src\codecs\timidity\*.c src\codecs\native_midi\native_midi_common.c src\codecs\native_midi\native_midi_win32.c src\version.res ^
   -Iinclude -Isrc -Isrc\codecs -I%DEPEND%\include\opus ^
   -link -dll -opt:icf -opt:ref -out:SDL3_mixer.dll ^
-  SDL3.lib libmodplug.lib mpg123.lib flac.lib opusfile.lib opus.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib user32.lib shlwapi.lib ^
+  SDL3.lib libxmp-static.lib mpg123.lib flac.lib libwavpack.lib opusfile.lib opus.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib user32.lib shlwapi.lib ^
   || exit /b 1
 copy /y include\SDL3_mixer\SDL_mixer.h %OUTPUT%\include\SDL3\
 copy /y SDL3_mixer.dll                 %OUTPUT%\bin\
