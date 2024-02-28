@@ -26,7 +26,7 @@ set AOM_VERSION=3.8.1
 set LIBYUV_VERSION=464c51a
 set DAV1D_VERSION=1.4.0
 set LIBAVIF_VERSION=1.0.4
-set LIBJXL_VERSION=0.9.2
+set LIBJXL_VERSION=0.10.1
 set FREETYPE_VERSION=2.13.2
 set HARFBUZZ_VERSION=8.3.0
 set LIBOGG_VERSION=1.3.5
@@ -36,12 +36,12 @@ set OPUSFILE_VERSION=0.12
 set FLAC_VERSION=1.4.3
 set MPG123_VERSION=1.32.5
 set LIBXMP_VERSION=4.6.0
-set WAVPACK_VERSION=5.6.0
+set WAVPACK_VERSION=5.7.0
 
 rem libjxl dependencies
 
 set BROTLI_COMMIT=36533a8
-set HIGHWAY_COMMIT=ba0900a
+set HIGHWAY_COMMIT=58b52a7
 set SKCMS_COMMIT=42030a7
 
 rem
@@ -196,7 +196,7 @@ call :get "https://downloads.xiph.org/releases/opus/opusfile-%OPUSFILE_VERSION%.
 call :get "https://downloads.xiph.org/releases/flac/flac-%FLAC_VERSION%.tar.xz"                                                                             || exit /b 1
 call :get "https://download.sourceforge.net/mpg123/mpg123-%MPG123_VERSION%.tar.bz2"                                                                         || exit /b 1
 call :get "https://github.com/libxmp/libxmp/releases/download/libxmp-%LIBXMP_VERSION%/libxmp-%LIBXMP_VERSION%.tar.gz"                                       || exit /b 1
-call :get "https://github.com/dbry/WavPack/archive/refs/tags/%WAVPACK_VERSION%.tar.gz" WavPack-%WAVPACK_VERSION%.tar.gz                                     || exit /b 1
+call :get "https://github.com/dbry/WavPack/releases/download/%WAVPACK_VERSION%/wavpack-%WAVPACK_VERSION%.tar.xz"                                            || exit /b 1
 
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
@@ -689,8 +689,8 @@ rem wavpack
 rem
 
 cmake.exe -Wno-dev                           ^
-  -S %BUILD%\WavPack-%WAVPACK_VERSION%       ^
-  -B %BUILD%\WavPack-%WAVPACK_VERSION%       ^
+  -S %BUILD%\wavpack-%WAVPACK_VERSION%       ^
+  -B %BUILD%\wavpack-%WAVPACK_VERSION%       ^
   -A x64 -T host=x64                         ^
   -G %MSVC_GENERATOR%                        ^
   -DCMAKE_ASM_COMPILER=ml64.exe              ^
@@ -704,7 +704,7 @@ cmake.exe -Wno-dev                           ^
   -DWAVPACK_BUILD_WINAMP_PLUGIN=OFF          ^
   -DBUILD_SHARED_LIBS=OFF                    ^
   || exit /b 1
-cmake.exe --build %BUILD%\WavPack-%WAVPACK_VERSION% --config Release --target install --parallel || exit /b 1
+cmake.exe --build %BUILD%\wavpack-%WAVPACK_VERSION% --config Release --target install --parallel || exit /b 1
 
 rem
 rem SDL
