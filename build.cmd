@@ -17,6 +17,7 @@ set BZIP2_VERSION=1.0.8
 set XZ_VERSION=5.4.6
 set ZSTD_VERSION=1.5.6
 set LIBPNG_VERSION=1.6.43
+set LIBJPEGTURBO_VERSION=3.0.2
 set JBIG_VERSION=2.1
 set LERC_VERSION=4.0.0
 set TIFF_VERSION=4.6.0
@@ -42,7 +43,6 @@ rem libjxl dependencies
 set BROTLI_COMMIT=36533a8
 set HIGHWAY_COMMIT=58b52a7
 set SKCMS_COMMIT=42030a7
-set LIBJPEG_TURBO_COMMIT=8ecba36
 
 rem
 rem dependencies
@@ -177,6 +177,7 @@ call :get "https://sourceware.org/pub/bzip2/bzip2-%BZIP2_VERSION%.tar.gz"       
 call :get "https://github.com/tukaani-project/xz/releases/download/v%XZ_VERSION%/xz-%XZ_VERSION%.tar.xz"                                                    || exit /b 1
 call :get "https://github.com/facebook/zstd/releases/download/v%ZSTD_VERSION%/zstd-%ZSTD_VERSION%.tar.gz"                                                   || exit /b 1
 call :get "https://download.sourceforge.net/libpng/libpng-%LIBPNG_VERSION%.tar.xz"                                                                          || exit /b 1
+call :get "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/%LIBJPEGTURBO_VERSION%/libjpeg-turbo-%LIBJPEGTURBO_VERSION%.tar.gz"             || exit /b 1
 call :get "https://www.cl.cam.ac.uk/~mgk25/jbigkit/download/jbigkit-%JBIG_VERSION%.tar.gz"                                                                  || exit /b 1
 call :get "https://github.com/Esri/lerc/archive/refs/tags/v%LERC_VERSION%.tar.gz" lerc-%LERC_VERSION%.tar.gz                                                || exit /b 1
 call :get "https://download.osgeo.org/libtiff/tiff-%TIFF_VERSION%.tar.gz"                                                                                   || exit /b 1
@@ -197,18 +198,15 @@ call :get "https://download.sourceforge.net/mpg123/mpg123-%MPG123_VERSION%.tar.b
 call :get "https://github.com/libxmp/libxmp/releases/download/libxmp-%LIBXMP_VERSION%/libxmp-%LIBXMP_VERSION%.tar.gz"                                       || exit /b 1
 call :get "https://github.com/dbry/WavPack/releases/download/%WAVPACK_VERSION%/wavpack-%WAVPACK_VERSION%.tar.xz"                                            || exit /b 1
 
-rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli        1>nul 2>nul
-rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway       1>nul 2>nul
-rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\libjpeg-turbo 1>nul 2>nul
+rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
+rd /s /q %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
 
-call :get "https://github.com/google/brotli/tarball/%BROTLI_COMMIT%"                      google-brotli-%BROTLI_COMMIT%.tar.gz                                          || exit /b 1
-call :get "https://github.com/google/highway/tarball/%HIGHWAY_COMMIT%"                    google-highway-%HIGHWAY_COMMIT%.tar.gz                                        || exit /b 1
-call :get "https://github.com/libjpeg-turbo/libjpeg-turbo/tarball/%LIBJPEG_TURBO_COMMIT%" libjpeg-turbo-%LIBJPEG_TURBO_COMMIT%.tar.gz                                   || exit /b 1
-call :get "https://skia.googlesource.com/skcms/+archive/%SKCMS_COMMIT%.tar.gz"            skcms-%SKCMS_COMMIT%.tar.gz %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\skcms || exit /b 1
+call :get "https://github.com/google/brotli/tarball/%BROTLI_COMMIT%"           google-brotli-%BROTLI_COMMIT%.tar.gz                                          || exit /b 1
+call :get "https://github.com/google/highway/tarball/%HIGHWAY_COMMIT%"         google-highway-%HIGHWAY_COMMIT%.tar.gz                                        || exit /b 1
+call :get "https://skia.googlesource.com/skcms/+archive/%SKCMS_COMMIT%.tar.gz" skcms-%SKCMS_COMMIT%.tar.gz %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\skcms || exit /b 1
 
-move %BUILD%\google-brotli-%BROTLI_COMMIT%                      %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli        1>nul 2>nul
-move %BUILD%\google-highway-%HIGHWAY_COMMIT%                    %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway       1>nul 2>nul
-move %BUILD%\libjpeg-turbo-libjpeg-turbo-%LIBJPEG_TURBO_COMMIT% %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\libjpeg-turbo 1>nul 2>nul
+move %BUILD%\google-brotli-%BROTLI_COMMIT%   %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
+move %BUILD%\google-highway-%HIGHWAY_COMMIT% %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
 
 call :clone SDL       "https://github.com/libsdl-org/SDL"       main || exit /b 1
 call :clone SDL_image "https://github.com/libsdl-org/SDL_image" main || exit /b 1
@@ -298,6 +296,25 @@ cmake.exe -Wno-dev                           ^
 cmake.exe --build %BUILD%\libpng-%LIBPNG_VERSION% --config Release --target install --parallel || exit /b 1
 
 rem
+rem libjpeg-turbo
+rem
+
+cmake.exe -Wno-dev                                ^
+  -S %BUILD%\libjpeg-turbo-%LIBJPEGTURBO_VERSION% ^
+  -B %BUILD%\libjpeg-turbo-%LIBJPEGTURBO_VERSION% ^
+  -A x64 -T host=x64                              ^
+  -G %MSVC_GENERATOR%                             ^
+  -DCMAKE_INSTALL_PREFIX=%DEPEND%                 ^
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW              ^
+  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded      ^
+  -DENABLE_SHARED=OFF                             ^
+  -DENABLE_STATIC=ON                              ^
+  -DREQUIRE_SIMD=ON                               ^
+  -DWITH_TURBOJPEG=OFF                            ^
+  || exit /b 1
+cmake.exe --build %BUILD%\libjpeg-turbo-%LIBJPEGTURBO_VERSION% --config Release --target install || exit /b 1
+
+rem
 rem libwebp
 rem
 
@@ -348,53 +365,6 @@ cmake.exe -Wno-dev                           ^
   -DBUILD_SHARED_LIBS=OFF                    ^
   || exit /b 1
 cmake.exe --build %BUILD%\lerc-%LERC_VERSION% --config Release --target install || exit /b 1
-
-rem
-rem libjxl with jpegli for libjpeg-turbo replacement
-rem
-
-call git apply --directory "build/libjxl-%LIBJXL_VERSION%" -p0 jpegli.patch || exit /b 1
-
-set CFLAGS=-DJXL_STATIC_DEFINE
-set CXXFLAGS=-DJXL_STATIC_DEFINE
-
-cmake.exe -Wno-dev                           ^
-  -S %BUILD%\libjxl-%LIBJXL_VERSION%         ^
-  -B %BUILD%\libjxl-%LIBJXL_VERSION%\build   ^
-  -A x64 -T host=x64                         ^
-  -G %MSVC_GENERATOR%                        ^
-  -DCMAKE_INSTALL_PREFIX=%DEPEND%            ^
-  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
-  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
-  -DBUILD_SHARED_LIBS=OFF                    ^
-  -DBUILD_TESTING=OFF                        ^
-  -DJPEGXL_STATIC=true                       ^
-  -DJPEGXL_WARNINGS_AS_ERRORS=false          ^
-  -DJPEGXL_ENABLE_TOOLS=false                ^
-  -DJPEGXL_ENABLE_DOXYGEN=false              ^
-  -DJPEGXL_ENABLE_MANPAGES=false             ^
-  -DJPEGXL_ENABLE_BENCHMARK=false            ^
-  -DJPEGXL_ENABLE_EXAMPLES=false             ^
-  -DJPEGXL_ENABLE_VIEWERS=false              ^
-  -DJPEGXL_ENABLE_JNI=false                  ^
-  -DJPEGXL_ENABLE_SJPEG=false                ^
-  -DJPEGXL_ENABLE_OPENEXR=false              ^
-  -DJPEGXL_ENABLE_PLUGINS=false              ^
-  -DJPEGXL_ENABLE_SKCMS=true                 ^
-  -DJPEGXL_ENABLE_AVX512=true                ^
-  -DJPEGXL_ENABLE_AVX512_SPR=true            ^
-  -DJPEGXL_ENABLE_AVX512_ZEN4=true           ^
-  -DJPEGXL_ENABLE_JPEGLI=true                ^
-  -DJPEGXL_ENABLE_JPEGLI_LIBJPEG=true        ^
-  || exit /b 1
-cmake.exe --build %BUILD%\libjxl-%LIBJXL_VERSION%\build --config Release --target install jpegli-static --parallel || exit /b 1
-
-set CFLAGS=
-set CXXFLAGS=
-
-copy %BUILD%\libjxl-%LIBJXL_VERSION%\build\lib\Release\jpegli-static.lib %DEPEND%\lib\jpeg-static.lib 1>nul
-copy %BUILD%\libjxl-%LIBJXL_VERSION%\build\lib\include\jpegli\*.h        %DEPEND%\include\            1>nul
-copy %BUILD%\libjxl-%LIBJXL_VERSION%\third_party\libjpeg-turbo\jerror.h  %DEPEND%\include\            1>nul
 
 rem
 rem tiff
@@ -516,6 +486,45 @@ cmake.exe -Wno-dev                                   ^
   -DLIBSHARPYUV_LIBRARY=%DEPEND%\lib\libsharpyuv.lib ^
   || exit /b 1
 cmake.exe --build %BUILD%\libavif-%LIBAVIF_VERSION%\build --config Release --target install --parallel || exit /b 1
+
+rem
+rem libjxl
+rem
+
+set CFLAGS=-DJXL_STATIC_DEFINE
+set CXXFLAGS=-DJXL_STATIC_DEFINE
+
+cmake.exe -Wno-dev                           ^
+  -S %BUILD%\libjxl-%LIBJXL_VERSION%         ^
+  -B %BUILD%\libjxl-%LIBJXL_VERSION%\build   ^
+  -A x64 -T host=x64                         ^
+  -G %MSVC_GENERATOR%                        ^
+  -DCMAKE_INSTALL_PREFIX=%DEPEND%            ^
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
+  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
+  -DBUILD_SHARED_LIBS=OFF                    ^
+  -DBUILD_TESTING=OFF                        ^
+  -DJPEGXL_STATIC=true                       ^
+  -DJPEGXL_WARNINGS_AS_ERRORS=false          ^
+  -DJPEGXL_ENABLE_TOOLS=false                ^
+  -DJPEGXL_ENABLE_DOXYGEN=false              ^
+  -DJPEGXL_ENABLE_MANPAGES=false             ^
+  -DJPEGXL_ENABLE_BENCHMARK=false            ^
+  -DJPEGXL_ENABLE_EXAMPLES=false             ^
+  -DJPEGXL_ENABLE_VIEWERS=false              ^
+  -DJPEGXL_ENABLE_JNI=false                  ^
+  -DJPEGXL_ENABLE_SJPEG=false                ^
+  -DJPEGXL_ENABLE_OPENEXR=false              ^
+  -DJPEGXL_ENABLE_PLUGINS=false              ^
+  -DJPEGXL_ENABLE_SKCMS=true                 ^
+  -DJPEGXL_ENABLE_AVX512=true                ^
+  -DJPEGXL_ENABLE_AVX512_SPR=true            ^
+  -DJPEGXL_ENABLE_AVX512_ZEN4=true           ^
+  || exit /b 1
+cmake.exe --build %BUILD%\libjxl-%LIBJXL_VERSION%\build --config Release --target install --parallel || exit /b 1
+
+set CFLAGS=
+set CXXFLAGS=
 
 rem
 rem freetype
