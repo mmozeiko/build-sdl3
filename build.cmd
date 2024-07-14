@@ -611,6 +611,7 @@ cmake.exe -Wno-dev                           ^
   -DCMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
   -DBUILD_SHARED_LIBS=OFF                    ^
+  -DOPUS_STATIC_RUNTIME=ON                   ^
   || exit /b 1
 cmake.exe --build %BUILD%\opus-%OPUS_VERSION% --config Release --target install --parallel || exit /b 1
 
