@@ -845,14 +845,14 @@ if "%GITHUB_WORKFLOW%" neq "" (
   echo Creating %OUTPUT%.zip
   %SZIP% a -y -r -mx=9 "-x^!build" SDL3-!OUTPUT_DATE!.zip SDL3 || exit /b 1
 
-  echo ::set-output name=OUTPUT_DATE::!OUTPUT_DATE!
+  >> %GITHUB_OUTPUT% echo OUTPUT_DATE=!OUTPUT_DATE!
 
-  echo ::set-output name=SDL_COMMIT::%SDL_COMMIT%
-  echo ::set-output name=SDL_IMAGE_COMMIT::%SDL_IMAGE_COMMIT%
-  echo ::set-output name=SDL_MIXER_COMMIT::%SDL_MIXER_COMMIT%
-  echo ::set-output name=SDL_TTF_COMMIT::%SDL_TTF_COMMIT%
-  echo ::set-output name=SDL_RTF_COMMIT::%SDL_RTF_COMMIT%
-  echo ::set-output name=SDL_NET_COMMIT::%SDL_NET_COMMIT%
+  >> %GITHUB_OUTPUT% echo SDL_COMMIT=%SDL_COMMIT%
+  >> %GITHUB_OUTPUT% echo SDL_IMAGE_COMMIT=%SDL_IMAGE_COMMIT%
+  >> %GITHUB_OUTPUT% echo SDL_MIXER_COMMIT=%SDL_MIXER_COMMIT%
+  >> %GITHUB_OUTPUT% echo SDL_TTF_COMMIT=%SDL_TTF_COMMIT%
+  >> %GITHUB_OUTPUT% echo SDL_RTF_COMMIT=%SDL_RTF_COMMIT%
+  >> %GITHUB_OUTPUT% echo SDL_NET_COMMIT=%SDL_NET_COMMIT%
 )
 
 rem
