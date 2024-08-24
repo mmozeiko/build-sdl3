@@ -1,5 +1,5 @@
-build
-depend
+build-*
+depend-*
 download
-SDL3_*
-*.exe
+source
+SDL3-*

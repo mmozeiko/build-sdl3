@@ -1,4 +1,4 @@
-Automatic weekly build of [SDL3][] and its helper libraries for 64-bit Windows.
+Automatic weekly build of [SDL3][] and its helper libraries for 64-bit Windows (x64 and arm64).
 
 Build produces shared libraries (.dll files) that are linked statically to their dependencies.
 

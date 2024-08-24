@@ -11,40 +11,61 @@ on:
 jobs:
   build:
     runs-on: windows-2022
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+
+    outputs:
+      OUTPUT_DATE:      ${{ steps.build.outputs.OUTPUT_DATE }}
+      SDL_COMMIT:       ${{ steps.build.outputs.SDL_COMMIT }}
+      SDL_IMAGE_COMMIT: ${{ steps.build.outputs.SDL_IMAGE_COMMIT }}
+      SDL_MIXER_COMMIT: ${{ steps.build.outputs.SDL_MIXER_COMMIT }}
+      SDL_TTF_COMMIT:   ${{ steps.build.outputs.SDL_TTF_COMMIT }}
+      SDL_RTF_COMMIT:   ${{ steps.build.outputs.SDL_RTF_COMMIT }}
+      SDL_NET_COMMIT:   ${{ steps.build.outputs.SDL_NET_COMMIT }}
+
     steps:
 
       - name: checkout
-        uses: actions/checkout@v2          
+        uses: actions/checkout@v4
 
       - name: build
         id: build
         shell: cmd
-        run: call build.cmd
+        run: call build.cmd ${{ matrix.arch }}
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SDL3-${{ matrix.arch }}-${{ steps.build.outputs.OUTPUT_DATE }}
+          path: SDL3-${{ matrix.arch }}-${{ steps.build.outputs.OUTPUT_DATE }}.zip
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
 
       - name: release
-        id: release
-        if: steps.build.outputs.OUTPUT_DATE != ''
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.build.outputs.OUTPUT_DATE }}
-          release_name: ${{ steps.build.outputs.OUTPUT_DATE }}
-          body: |
-            [SDL commit](https://github.com/libsdl-org/SDL/commit/${{ steps.build.outputs.SDL_COMMIT }})
-            [SDL_image commit](https://github.com/libsdl-org/SDL_image/commit/${{ steps.build.outputs.SDL_IMAGE_COMMIT }})
-            [SDL_mixer commit](https://github.com/libsdl-org/SDL_mixer/commit/${{ steps.build.outputs.SDL_MIXER_COMMIT }})
-            [SDL_ttf commit](https://github.com/libsdl-org/SDL_ttf/commit/${{ steps.build.outputs.SDL_TTF_COMMIT }})
-            [SDL_rtf commit](https://github.com/libsdl-org/SDL_rtf/commit/${{ steps.build.outputs.SDL_RTF_COMMIT }})
-            [SDL_net commit](https://github.com/libsdl-org/SDL_net/commit/${{ steps.build.outputs.SDL_NET_COMMIT }})
+        run: |
+          echo '[SDL commit](https://github.com/libsdl-org/SDL/commit/${{ needs.build.outputs.SDL_COMMIT }})'                   >>notes.txt
+          echo '[SDL_image commit](https://github.com/libsdl-org/SDL_image/commit/${{ needs.build.outputs.SDL_IMAGE_COMMIT }})' >>notes.txt
+          echo '[SDL_mixer commit](https://github.com/libsdl-org/SDL_mixer/commit/${{ needs.build.outputs.SDL_MIXER_COMMIT }})' >>notes.txt
+          echo '[SDL_ttf commit](https://github.com/libsdl-org/SDL_ttf/commit/${{ needs.build.outputs.SDL_TTF_COMMIT }})'       >>notes.txt
+          echo '[SDL_rtf commit](https://github.com/libsdl-org/SDL_rtf/commit/${{ needs.build.outputs.SDL_RTF_COMMIT }})'       >>notes.txt
+          echo '[SDL_net commit](https://github.com/libsdl-org/SDL_net/commit/${{ needs.build.outputs.SDL_NET_COMMIT }})'       >>notes.txt
+          gh release create ${{ needs.build.outputs.OUTPUT_DATE }} -R "${GITHUB_REPOSITORY}" -t '${{ needs.build.outputs.OUTPUT_DATE }}' -F notes.txt
 
-      - name: upload
-        id: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: get artifacts
+        uses: actions/download-artifact@v4
         with:
-          upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: "SDL3-${{ steps.build.outputs.OUTPUT_DATE }}.zip"
-          asset_name: "SDL3-${{ steps.build.outputs.OUTPUT_DATE }}.zip"
-          asset_content_type: application/zip
+          pattern: SDL3-*-${{ needs.build.outputs.OUTPUT_DATE }}
+          merge-multiple: true
+
+      - name: upload artifacts
+        run: gh release upload '${{ needs.build.outputs.OUTPUT_DATE }}' SDL3-*-${{ needs.build.outputs.OUTPUT_DATE }}.zip -R "${GITHUB_REPOSITORY}"
