@@ -1022,6 +1022,8 @@ rem
 rem SDL_net
 rem
 
+set CL=-DSDL_ENABLE_OLD_NAMES
+
 cmake.exe %CMAKE_COMMON_ARGS%      ^
   -S %SOURCE%\SDL_net              ^
   -B %BUILD%\SDL_net               ^
