@@ -233,12 +233,13 @@ call :get "https://skia.googlesource.com/skcms/+archive/%SKCMS_COMMIT%.tar.gz" s
 move %SOURCE%\google-brotli-%BROTLI_COMMIT%   %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 move %SOURCE%\google-highway-%HIGHWAY_COMMIT% %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
 
-call :clone SDL       "https://github.com/libsdl-org/SDL"       main || exit /b 1
-call :clone SDL_image "https://github.com/libsdl-org/SDL_image" main || exit /b 1
-call :clone SDL_mixer "https://github.com/libsdl-org/SDL_mixer" main || exit /b 1
-call :clone SDL_ttf   "https://github.com/libsdl-org/SDL_ttf"   main || exit /b 1
-call :clone SDL_rtf   "https://github.com/libsdl-org/SDL_rtf"   main || exit /b 1
-call :clone SDL_net   "https://github.com/libsdl-org/SDL_net"   main || exit /b 1
+call :clone SDL         "https://github.com/libsdl-org/SDL"         main || exit /b 1
+call :clone SDL_image   "https://github.com/libsdl-org/SDL_image"   main || exit /b 1
+call :clone SDL_mixer   "https://github.com/libsdl-org/SDL_mixer"   main || exit /b 1
+call :clone SDL_ttf     "https://github.com/libsdl-org/SDL_ttf"     main || exit /b 1
+call :clone SDL_rtf     "https://github.com/libsdl-org/SDL_rtf"     main || exit /b 1
+call :clone SDL_net     "https://github.com/libsdl-org/SDL_net"     main || exit /b 1
+call :clone SDL2_compat "https://github.com/libsdl-org/sdl2-compat" main || exit /b 1
 
 pushd %SOURCE%\libyuv-%LIBYUV_VERSION%
 echo CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12) > "CMakeLists.txt.correct"
@@ -1036,6 +1037,31 @@ cmake.exe %CMAKE_COMMON_ARGS%      ^
   || exit /b 1
 ninja.exe -C %BUILD%\SDL_net install || exit /b 1
 
+set CL=
+
+rem
+rem SDL2_compat
+rem
+
+cmake.exe %CMAKE_COMMON_ARGS%      ^
+  -S %SOURCE%\SDL2_compat          ^
+  -B %BUILD%\SDL2_compat           ^
+  -D CMAKE_INSTALL_PREFIX=%OUTPUT% ^
+  -D CMAKE_PREFIX_PATH=%DEPEND%    ^
+  -D BUILD_SHARED_LIBS=ON          ^
+  -D SDL3_ROOT=%OUTPUT%            ^
+  -D SDL2COMPAT_TESTS=OFF          ^
+  -D SDL2COMPAT_STATIC=OFF         ^
+  || exit /b 1
+ninja.exe -C %BUILD%\SDL2_compat install || exit /b 1
+
+pushd %BUILD%\SDL2_compat
+del SDL2main.lib
+cl.exe -c -MT -O2 -Zl -DDLL_EXPORT -DNDEBUG -DWIN32 -I%OUTPUT%\include\SDL2 %SOURCE%\SDL2_compat\src\SDLmain\windows\SDL_windows_main.c || exit /b 1
+lib.exe -nologo -out:SDL2main.lib SDL_windows_main.obj || exit /b 1
+move /y SDL2main.lib %OUTPUT%\lib\
+popd
+
 rem
 rem Collect Commit Hashes
 rem
@@ -1046,13 +1072,15 @@ set /p SDL_MIXER_COMMIT=<%SOURCE%\SDL_mixer\.git\refs\heads\main
 set /p SDL_TTF_COMMIT=<%SOURCE%\SDL_ttf\.git\refs\heads\main
 set /p SDL_RTF_COMMIT=<%SOURCE%\SDL_rtf\.git\refs\heads\main
 set /p SDL_NET_COMMIT=<%SOURCE%\SDL_net\.git\refs\heads\main
+set /p SDL2_COMPAT_COMMIT=<%SOURCE%\SDL2_compat\.git\refs\heads\main
 
-echo SDL       %SDL_COMMIT%        > %OUTPUT%\commits.txt
-echo SDL_image %SDL_IMAGE_COMMIT% >> %OUTPUT%\commits.txt
-echo SDL_mixer %SDL_MIXER_COMMIT% >> %OUTPUT%\commits.txt
-echo SDL_ttf   %SDL_TTF_COMMIT%   >> %OUTPUT%\commits.txt
-echo SDL_rtf   %SDL_RTF_COMMIT%   >> %OUTPUT%\commits.txt
-echo SDL_net   %SDL_NET_COMMIT%   >> %OUTPUT%\commits.txt
+echo SDL         %SDL_COMMIT%          > %OUTPUT%\commits.txt
+echo SDL_image   %SDL_IMAGE_COMMIT%   >> %OUTPUT%\commits.txt
+echo SDL_mixer   %SDL_MIXER_COMMIT%   >> %OUTPUT%\commits.txt
+echo SDL_ttf     %SDL_TTF_COMMIT%     >> %OUTPUT%\commits.txt
+echo SDL_rtf     %SDL_RTF_COMMIT%     >> %OUTPUT%\commits.txt
+echo SDL_net     %SDL_NET_COMMIT%     >> %OUTPUT%\commits.txt
+echo SDL2_compat %SDL2_COMPAT_COMMIT% >> %OUTPUT%\commits.txt
 
 for %%F in (SDL3_mixer SDL3_image SDL3_mixer SDL3_net SDL3_rtf SDL3_ttf) do (
   move %OUTPUT%\include\%%F\*.h %OUTPUT%\include\SDL3\ 1>nul 2>nul
@@ -1069,7 +1097,8 @@ if "%GITHUB_WORKFLOW%" neq "" (
   :dateok
   set OUTPUT_DATE=%LDATE:~0,4%-%LDATE:~4,2%-%LDATE:~6,2%
 
-  del /q %OUTPUT%\bin\*.pdb %OUTPUT%\include\SDL3\SDL_test*.h %OUTPUT%\lib\SDL3_test.lib 1>nul 2>nul
+  del /q %OUTPUT%\bin\*.pdb %OUTPUT%\lib\SDL3_test.lib %OUTPUT%\lib\SDL2_test.lib 1>nul 2>nul
+  del /q %OUTPUT%\include\SDL3\SDL_test*.h %OUTPUT%\include\SDL2\SDL_test*.h 1>nul 2>nul
   rd /s /q %OUTPUT%\cmake %OUTPUT%\lib\pkgconfig %OUTPUT%\licenses %OUTPUT%\share 1>nul 2>nul
 
   echo Creating SDL3-%TARGET_ARCH%-!OUTPUT_DATE!.zip
@@ -1083,6 +1112,7 @@ if "%GITHUB_WORKFLOW%" neq "" (
   echo SDL_TTF_COMMIT=%SDL_TTF_COMMIT%>>%GITHUB_OUTPUT%
   echo SDL_RTF_COMMIT=%SDL_RTF_COMMIT%>>%GITHUB_OUTPUT%
   echo SDL_NET_COMMIT=%SDL_NET_COMMIT%>>%GITHUB_OUTPUT%
+  echo SDL2_COMPAT_COMMIT=%SDL2_COMPAT_COMMIT%>>%GITHUB_OUTPUT%
 )
 
 rem

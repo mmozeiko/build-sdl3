@@ -16,13 +16,14 @@ jobs:
         arch: [x64, arm64]
 
     outputs:
-      OUTPUT_DATE:      ${{ steps.build.outputs.OUTPUT_DATE }}
-      SDL_COMMIT:       ${{ steps.build.outputs.SDL_COMMIT }}
-      SDL_IMAGE_COMMIT: ${{ steps.build.outputs.SDL_IMAGE_COMMIT }}
-      SDL_MIXER_COMMIT: ${{ steps.build.outputs.SDL_MIXER_COMMIT }}
-      SDL_TTF_COMMIT:   ${{ steps.build.outputs.SDL_TTF_COMMIT }}
-      SDL_RTF_COMMIT:   ${{ steps.build.outputs.SDL_RTF_COMMIT }}
-      SDL_NET_COMMIT:   ${{ steps.build.outputs.SDL_NET_COMMIT }}
+      OUTPUT_DATE:        ${{ steps.build.outputs.OUTPUT_DATE }}
+      SDL_COMMIT:         ${{ steps.build.outputs.SDL_COMMIT }}
+      SDL_IMAGE_COMMIT:   ${{ steps.build.outputs.SDL_IMAGE_COMMIT }}
+      SDL_MIXER_COMMIT:   ${{ steps.build.outputs.SDL_MIXER_COMMIT }}
+      SDL_TTF_COMMIT:     ${{ steps.build.outputs.SDL_TTF_COMMIT }}
+      SDL_RTF_COMMIT:     ${{ steps.build.outputs.SDL_RTF_COMMIT }}
+      SDL_NET_COMMIT:     ${{ steps.build.outputs.SDL_NET_COMMIT }}
+      SDL2_COMPAT_COMMIT: ${{ steps.build.outputs.SDL2_COMPAT_COMMIT }}
 
     steps:
 
@@ -53,12 +54,13 @@ jobs:
 
       - name: release
         run: |
-          echo '[SDL commit](https://github.com/libsdl-org/SDL/commit/${{ needs.build.outputs.SDL_COMMIT }})'                   >>notes.txt
-          echo '[SDL_image commit](https://github.com/libsdl-org/SDL_image/commit/${{ needs.build.outputs.SDL_IMAGE_COMMIT }})' >>notes.txt
-          echo '[SDL_mixer commit](https://github.com/libsdl-org/SDL_mixer/commit/${{ needs.build.outputs.SDL_MIXER_COMMIT }})' >>notes.txt
-          echo '[SDL_ttf commit](https://github.com/libsdl-org/SDL_ttf/commit/${{ needs.build.outputs.SDL_TTF_COMMIT }})'       >>notes.txt
-          echo '[SDL_rtf commit](https://github.com/libsdl-org/SDL_rtf/commit/${{ needs.build.outputs.SDL_RTF_COMMIT }})'       >>notes.txt
-          echo '[SDL_net commit](https://github.com/libsdl-org/SDL_net/commit/${{ needs.build.outputs.SDL_NET_COMMIT }})'       >>notes.txt
+          echo '[SDL commit](https://github.com/libsdl-org/SDL/commit/${{ needs.build.outputs.SDL_COMMIT }})'                         >>notes.txt
+          echo '[SDL_image commit](https://github.com/libsdl-org/SDL_image/commit/${{ needs.build.outputs.SDL_IMAGE_COMMIT }})'       >>notes.txt
+          echo '[SDL_mixer commit](https://github.com/libsdl-org/SDL_mixer/commit/${{ needs.build.outputs.SDL_MIXER_COMMIT }})'       >>notes.txt
+          echo '[SDL_ttf commit](https://github.com/libsdl-org/SDL_ttf/commit/${{ needs.build.outputs.SDL_TTF_COMMIT }})'             >>notes.txt
+          echo '[SDL_rtf commit](https://github.com/libsdl-org/SDL_rtf/commit/${{ needs.build.outputs.SDL_RTF_COMMIT }})'             >>notes.txt
+          echo '[SDL_net commit](https://github.com/libsdl-org/SDL_net/commit/${{ needs.build.outputs.SDL_NET_COMMIT }})'             >>notes.txt
+          echo '[SDL2_compat commit](https://github.com/libsdl-org/sdl2-compat/commit/${{ needs.build.outputs.SDL2_COMPAT_COMMIT }})' >>notes.txt
           gh release create ${{ needs.build.outputs.OUTPUT_DATE }} -R "${GITHUB_REPOSITORY}" -t '${{ needs.build.outputs.OUTPUT_DATE }}' -F notes.txt
 
       - name: get artifacts
