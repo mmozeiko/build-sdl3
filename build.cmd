@@ -32,7 +32,7 @@ set NINJA_VERSION=1.12.1
 
 set ZLIB_VERSION=1.3.1
 set BZIP2_VERSION=1.0.8
-set XZ_VERSION=5.6.2
+set XZ_VERSION=5.6.3
 set ZSTD_VERSION=1.5.6
 set LIBPNG_VERSION=1.6.44
 set LIBJPEGTURBO_VERSION=3.0.4
@@ -502,7 +502,7 @@ cmake.exe %CMAKE_COMMON_ARGS%              ^
 ninja.exe -C %BUILD%\tiff-%TIFF_VERSION% install || exit /b 1
 
 pushd %DEPEND%
-python.exe -c "print(open('lib/cmake/tiff/TiffTargets.cmake').read().replace(r'\$<LINK_ONLY:ZLIB::ZLIB>;\$<LINK_ONLY:JPEG::JPEG>;\$<LINK_ONLY:JBIG::JBIG>;\$<LINK_ONLY:LERC::LERC>;\$<LINK_ONLY:liblzma::liblzma>;\$<LINK_ONLY:ZSTD::ZSTD>','zlibstatic.lib;jpeg-static.lib;jbig.lib;Lerc.lib;liblzma.lib;zstd_static.lib'), file=open('lib/cmake/tiff/TiffTargets.cmake', 'w'))"
+python.exe -c "print(open('lib/cmake/tiff/TiffTargets.cmake').read().replace(r'\$<LINK_ONLY:ZLIB::ZLIB>;\$<LINK_ONLY:JPEG::JPEG>;\$<LINK_ONLY:JBIG::JBIG>;\$<LINK_ONLY:LERC::LERC>;\$<LINK_ONLY:liblzma::liblzma>;\$<LINK_ONLY:ZSTD::ZSTD>','zlibstatic.lib;jpeg-static.lib;jbig.lib;Lerc.lib;lzma.lib;zstd_static.lib'), file=open('lib/cmake/tiff/TiffTargets.cmake', 'w'))"
 popd
 
 rem
