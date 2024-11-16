@@ -233,13 +233,19 @@ call :get "https://skia.googlesource.com/skcms/+archive/%SKCMS_COMMIT%.tar.gz" s
 move %SOURCE%\google-brotli-%BROTLI_COMMIT%   %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 move %SOURCE%\google-highway-%HIGHWAY_COMMIT% %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
 
-call :clone SDL         "https://github.com/libsdl-org/SDL"         main || exit /b 1
-call :clone SDL_image   "https://github.com/libsdl-org/SDL_image"   main || exit /b 1
-call :clone SDL_mixer   "https://github.com/libsdl-org/SDL_mixer"   main || exit /b 1
-call :clone SDL_ttf     "https://github.com/libsdl-org/SDL_ttf"     main || exit /b 1
-call :clone SDL_rtf     "https://github.com/libsdl-org/SDL_rtf"     main || exit /b 1
-call :clone SDL_net     "https://github.com/libsdl-org/SDL_net"     main || exit /b 1
-call :clone SDL2_compat "https://github.com/libsdl-org/sdl2-compat" main || exit /b 1
+call :clone SDL             "https://github.com/libsdl-org/SDL"             main || exit /b 1
+call :clone SDL_image       "https://github.com/libsdl-org/SDL_image"       main || exit /b 1
+call :clone SDL_mixer       "https://github.com/libsdl-org/SDL_mixer"       main || exit /b 1
+call :clone SDL_ttf         "https://github.com/libsdl-org/SDL_ttf"         main || exit /b 1
+call :clone SDL_rtf         "https://github.com/libsdl-org/SDL_rtf"         main || exit /b 1
+call :clone SDL_net         "https://github.com/libsdl-org/SDL_net"         main || exit /b 1
+call :clone SDL_shadercross "https://github.com/libsdl-org/SDL_shadercross" main || exit /b 1
+call :clone SDL2_compat     "https://github.com/libsdl-org/sdl2-compat"     main || exit /b 1
+
+echo Updating SDL_shadercross submodules
+call git -C source\SDL_shadercross submodule update --init --recursive --quiet || exit /b 1
+call git -C source\SDL_shadercross submodule foreach git reset --quiet --hard HEAD || exit /b 1
+call git apply -p1 --directory=source/SDL_shadercross/external/DirectXShaderCompiler dxc.patch || exit /b 1
 
 pushd %SOURCE%\libyuv-%LIBYUV_VERSION%
 echo CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12) > "CMakeLists.txt.correct"
@@ -260,6 +266,8 @@ popd
 rem
 rem MSVC Environment
 rem
+
+set OLD_PATH=%PATH%
 
 where /Q cl.exe || (
   for /f "tokens=*" %%i in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath') do set VS=%%i
@@ -288,7 +296,7 @@ if "%TARGET_ARCH%" equ "arm64" (
     -DCMAKE_SYSTEM_NAME=Windows             ^
     -DCMAKE_SYSTEM_PROCESSOR=arm64
 
-  where clang-cl.exe || (
+  where /q clang-cl.exe || (
     echo ERROR: "clang-cl.exe" not found, required to build "dav1d" and "libjxl" with neon intrinsic optimizations
     exit /b 1
   )
@@ -1040,6 +1048,48 @@ ninja.exe -C %BUILD%\SDL_net install || exit /b 1
 set CL=
 
 rem
+rem SDL_shadercross
+rem
+
+if "%HOST_ARCH%" neq "%TARGET_ARCH%" (
+  set PATH=!OLD_PATH!
+  call "!VS!\Common7\Tools\VsDevCmd.bat" -arch=!HOST_ARCH! -host_arch=!HOST_ARCH! -startdir=none -no_logo || exit /b 1
+
+  cmake.exe                                                          ^
+    -G Ninja                                                         ^
+    -S %SOURCE%\SDL_shadercross\external\DirectXShaderCompiler       ^
+    -B %BUILD%\SDL_shadercross\external\DirectXShaderCompiler-native ^
+    -D CMAKE_BUILD_TYPE=Release                                      ^
+    -D BUILD_SHARED_LIBS=OFF                                         ^
+    -D LLVM_TARGETS_TO_BUILD=None                                    ^
+    -D LLVM_ENABLE_WARNINGS=OFF                                      ^
+    -D LLVM_ENABLE_EH=ON                                             ^
+    -D LLVM_ENABLE_RTTI=ON                                           ^
+    || exit /b 1
+  ninja.exe -C %BUILD%\SDL_shadercross\external\DirectXShaderCompiler-native llvm-tblgen clang-tblgen || exit /b 1
+
+  set PATH=!OLD_PATH!
+  call "!VS!\Common7\Tools\VsDevCmd.bat" -arch=!TARGET_ARCH! -host_arch=!HOST_ARCH! -startdir=none -no_logo || exit /b 1
+  set PATH=%BUILD%\SDL_shadercross\external\DirectXShaderCompiler-native\bin;!PATH!
+)
+
+cmake.exe %CMAKE_COMMON_ARGS%             ^
+  -S %SOURCE%\SDL_shadercross             ^
+  -B %BUILD%\SDL_shadercross              ^
+  -D CMAKE_INSTALL_PREFIX=%OUTPUT%        ^
+  -D CMAKE_PREFIX_PATH=%DEPEND%           ^
+  -D SDL3_ROOT=%OUTPUT%                   ^
+  -D SDLSHADERCROSS_CLI=ON                ^
+  -D SDLSHADERCROSS_VENDORED=ON           ^
+  -D SDLSHADERCROSS_SHARED=ON             ^
+  -D SDLSHADERCROSS_STATIC=OFF            ^
+  -D SDLSHADERCROSS_SPIRVCROSS_SHARED=OFF ^
+  -D SDLSHADERCROSS_INSTALL=ON            ^
+  -D SDLSHADERCROSS_INSTALL_CPACK=OFF     ^
+  || exit /b 1
+ninja.exe -C %BUILD%\SDL_shadercross install || exit /b 1
+
+rem
 rem SDL2_compat
 rem
 
@@ -1072,17 +1122,19 @@ set /p SDL_MIXER_COMMIT=<%SOURCE%\SDL_mixer\.git\refs\heads\main
 set /p SDL_TTF_COMMIT=<%SOURCE%\SDL_ttf\.git\refs\heads\main
 set /p SDL_RTF_COMMIT=<%SOURCE%\SDL_rtf\.git\refs\heads\main
 set /p SDL_NET_COMMIT=<%SOURCE%\SDL_net\.git\refs\heads\main
+set /p SDL_SHADERCROSS_COMMIT=<%SOURCE%\SDL_shadercross\.git\refs\heads\main
 set /p SDL2_COMPAT_COMMIT=<%SOURCE%\SDL2_compat\.git\refs\heads\main
 
-echo SDL         %SDL_COMMIT%          > %OUTPUT%\commits.txt
-echo SDL_image   %SDL_IMAGE_COMMIT%   >> %OUTPUT%\commits.txt
-echo SDL_mixer   %SDL_MIXER_COMMIT%   >> %OUTPUT%\commits.txt
-echo SDL_ttf     %SDL_TTF_COMMIT%     >> %OUTPUT%\commits.txt
-echo SDL_rtf     %SDL_RTF_COMMIT%     >> %OUTPUT%\commits.txt
-echo SDL_net     %SDL_NET_COMMIT%     >> %OUTPUT%\commits.txt
-echo SDL2_compat %SDL2_COMPAT_COMMIT% >> %OUTPUT%\commits.txt
+echo SDL             %SDL_COMMIT%              > %OUTPUT%\commits.txt
+echo SDL_image       %SDL_IMAGE_COMMIT%       >> %OUTPUT%\commits.txt
+echo SDL_mixer       %SDL_MIXER_COMMIT%       >> %OUTPUT%\commits.txt
+echo SDL_ttf         %SDL_TTF_COMMIT%         >> %OUTPUT%\commits.txt
+echo SDL_rtf         %SDL_RTF_COMMIT%         >> %OUTPUT%\commits.txt
+echo SDL_net         %SDL_NET_COMMIT%         >> %OUTPUT%\commits.txt
+echo SDL_shadercross %SDL_SHADERCROSS_COMMIT% >> %OUTPUT%\commits.txt
+echo SDL2_compat     %SDL2_COMPAT_COMMIT%     >> %OUTPUT%\commits.txt
 
-for %%F in (SDL3_mixer SDL3_image SDL3_mixer SDL3_net SDL3_rtf SDL3_ttf) do (
+for %%F in (SDL3_mixer SDL3_image SDL3_mixer SDL3_net SDL3_rtf SDL3_ttf SDL3_shadercross) do (
   move %OUTPUT%\include\%%F\*.h %OUTPUT%\include\SDL3\ 1>nul 2>nul
   rd /s /q %OUTPUT%\include\%%F 1>nul 2>nul
 )
@@ -1112,6 +1164,7 @@ if "%GITHUB_WORKFLOW%" neq "" (
   echo SDL_TTF_COMMIT=%SDL_TTF_COMMIT%>>%GITHUB_OUTPUT%
   echo SDL_RTF_COMMIT=%SDL_RTF_COMMIT%>>%GITHUB_OUTPUT%
   echo SDL_NET_COMMIT=%SDL_NET_COMMIT%>>%GITHUB_OUTPUT%
+  echo SDL_SHADERCROSS_COMMIT=%SDL_SHADERCROSS_COMMIT%>>%GITHUB_OUTPUT%
   echo SDL2_COMPAT_COMMIT=%SDL2_COMPAT_COMMIT%>>%GITHUB_OUTPUT%
 )
 
