@@ -1,0 +1,13 @@
+diff --git a/lib/cmake/tiff/TiffTargets.cmake b/lib/cmake/tiff/TiffTargets.cmake
+index 0521b6f..d4eb57f 100644
+--- a/lib/cmake/tiff/TiffTargets.cmake
++++ b/lib/cmake/tiff/TiffTargets.cmake
+@@ -60,7 +60,7 @@ add_library(TIFF::tiff STATIC IMPORTED)
+ 
+ set_target_properties(TIFF::tiff PROPERTIES
+   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+-  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:ZLIB::ZLIB>;\$<LINK_ONLY:JPEG::JPEG>;\$<LINK_ONLY:JBIG::JBIG>;\$<LINK_ONLY:LERC::LERC>;\$<LINK_ONLY:liblzma::liblzma>;\$<LINK_ONLY:ZSTD::ZSTD>;\$<LINK_ONLY:WebP::webp>"
++  INTERFACE_LINK_LIBRARIES "zlibstatic.lib;jpeg-static.lib;jbig.lib;Lerc.lib;lzma.lib;zstd_static.lib;\$<LINK_ONLY:WebP::webp>"
+ )
+ 
+ # Load information for each installed configuration.

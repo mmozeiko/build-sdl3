@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index bc64168..7d8794d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2,6 +2,7 @@
+ # Originally created for "roxlu build system" to compile libyuv on windows
+ # Run with -DTEST=ON to build unit tests
+ 
++CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
+ PROJECT ( YUV C CXX )	# "C" is required even for C++ projects
+ CMAKE_MINIMUM_REQUIRED( VERSION 2.8.12 )
+ OPTION( TEST "Built unit tests" OFF )

@@ -1,0 +1,13 @@
+diff --git a/include/FLAC/export.h b/include/FLAC/export.h
+index d14728a..8682f64 100644
+--- a/include/FLAC/export.h
++++ b/include/FLAC/export.h
+@@ -74,7 +74,7 @@
+  */
+ #if defined(_WIN32)
+ 
+-#if defined(FLAC__NO_DLL) && !(defined(DLL_EXPORT))
++#if defined(FLAC__NO_DLL) && !(defined(FLAC_DLL_EXPORT))
+ #define FLAC_API
+ #else
+ #ifdef FLAC_API_EXPORTS
