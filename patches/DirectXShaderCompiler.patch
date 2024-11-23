@@ -1,0 +1,533 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8f7db9978..db538e1fe 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -633,11 +633,6 @@ include_directories( ${LLVM_INCLUDE_DIR} ${LLVM_MAIN_INCLUDE_DIR})
+ 
+ include_directories( ${LLVM_INCLUDE_DIR}/dxc/Tracing) # HLSL Change
+ 
+-# when crosscompiling import the executable targets from a file
+-if(LLVM_USE_HOST_TOOLS)
+-  include(CrossCompile)
+-endif(LLVM_USE_HOST_TOOLS)
+-
+ if(${CMAKE_SYSTEM_NAME} MATCHES "(FreeBSD|DragonFly)")
+   # On FreeBSD, /usr/local/* is not used by default. In order to build LLVM
+   # with libxml2, iconv.h, etc., we must add /usr/local paths.
+diff --git a/cmake/modules/TableGen.cmake b/cmake/modules/TableGen.cmake
+index 85d720e91..579061e0c 100644
+--- a/cmake/modules/TableGen.cmake
++++ b/cmake/modules/TableGen.cmake
+@@ -92,25 +92,6 @@ macro(add_tablegen target project)
+   set(${project}_TABLEGEN_EXE ${${project}_TABLEGEN} PARENT_SCOPE)
+   set(${project}_TABLEGEN_TARGET ${${project}_TABLEGEN} PARENT_SCOPE)
+ 
+-  if(LLVM_USE_HOST_TOOLS)
+-    if( ${${project}_TABLEGEN} STREQUAL "${target}" )
+-      if (NOT CMAKE_CONFIGURATION_TYPES)
+-        set(${project}_TABLEGEN_EXE "${LLVM_NATIVE_BUILD}/bin/${target}")
+-      else()
+-        set(${project}_TABLEGEN_EXE "${LLVM_NATIVE_BUILD}/Release/bin/${target}")
+-      endif()
+-      set(${project}_TABLEGEN_EXE ${${project}_TABLEGEN_EXE} PARENT_SCOPE)
+-
+-      add_custom_command(OUTPUT ${${project}_TABLEGEN_EXE}
+-        COMMAND ${CMAKE_COMMAND} --build . --target ${target} --config Release
+-        DEPENDS CONFIGURE_LLVM_NATIVE ${target}
+-        WORKING_DIRECTORY ${LLVM_NATIVE_BUILD}
+-        COMMENT "Building native TableGen...")
+-      add_custom_target(${project}-tablegen-host DEPENDS ${${project}_TABLEGEN_EXE})
+-      set(${project}_TABLEGEN_TARGET ${project}-tablegen-host PARENT_SCOPE)
+-    endif()
+-  endif()
+-
+   if( MINGW )
+     if(CMAKE_SIZEOF_VOID_P MATCHES "8")
+       set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,--stack,16777216)
+diff --git a/include/dxc/Support/dxcapi.use.h b/include/dxc/Support/dxcapi.use.h
+index 44fe23bad..aa1b954ee 100644
+--- a/include/dxc/Support/dxcapi.use.h
++++ b/include/dxc/Support/dxcapi.use.h
+@@ -16,83 +16,26 @@
+ 
+ namespace dxc {
+ 
+-extern const char *kDxCompilerLib;
+-extern const char *kDxilLib;
++extern "C" HRESULT __stdcall DxcCreateInstance(REFCLSID rclsid, REFIID riid, _Out_ LPVOID *ppv);
++extern "C" HRESULT __stdcall DxcCreateInstance2(IMalloc *pMalloc, REFCLSID rclsid, REFIID riid, _Out_ LPVOID *ppv);
+ 
+-// Helper class to dynamically load the dxcompiler or a compatible libraries.
+ class DxcDllSupport {
+ protected:
+-  HMODULE m_dll;
+-  DxcCreateInstanceProc m_createFn;
+-  DxcCreateInstance2Proc m_createFn2;
+-
+-  HRESULT InitializeInternal(LPCSTR dllName, LPCSTR fnName) {
+-    if (m_dll != nullptr)
+-      return S_OK;
+-
+-#ifdef _WIN32
+-    m_dll = LoadLibraryA(dllName);
+-    if (m_dll == nullptr)
+-      return HRESULT_FROM_WIN32(GetLastError());
+-    m_createFn = (DxcCreateInstanceProc)GetProcAddress(m_dll, fnName);
+-
+-    if (m_createFn == nullptr) {
+-      HRESULT hr = HRESULT_FROM_WIN32(GetLastError());
+-      FreeLibrary(m_dll);
+-      m_dll = nullptr;
+-      return hr;
+-    }
+-#else
+-    m_dll = ::dlopen(dllName, RTLD_LAZY);
+-    if (m_dll == nullptr)
+-      return E_FAIL;
+-    m_createFn = (DxcCreateInstanceProc)::dlsym(m_dll, fnName);
+-
+-    if (m_createFn == nullptr) {
+-      ::dlclose(m_dll);
+-      m_dll = nullptr;
+-      return E_FAIL;
+-    }
+-#endif
+-
+-    // Only basic functions used to avoid requiring additional headers.
+-    m_createFn2 = nullptr;
+-    char fnName2[128];
+-    size_t s = strlen(fnName);
+-    if (s < sizeof(fnName2) - 2) {
+-      memcpy(fnName2, fnName, s);
+-      fnName2[s] = '2';
+-      fnName2[s + 1] = '\0';
+-#ifdef _WIN32
+-      m_createFn2 = (DxcCreateInstance2Proc)GetProcAddress(m_dll, fnName2);
+-#else
+-      m_createFn2 = (DxcCreateInstance2Proc)::dlsym(m_dll, fnName2);
+-#endif
+-    }
+-
+-    return S_OK;
+-  }
+ 
+ public:
+-  DxcDllSupport() : m_dll(nullptr), m_createFn(nullptr), m_createFn2(nullptr) {}
++  DxcDllSupport() {}
+ 
+   DxcDllSupport(DxcDllSupport &&other) {
+-    m_dll = other.m_dll;
+-    other.m_dll = nullptr;
+-    m_createFn = other.m_createFn;
+-    other.m_createFn = nullptr;
+-    m_createFn2 = other.m_createFn2;
+-    other.m_createFn2 = nullptr;
+   }
+ 
+   ~DxcDllSupport() { Cleanup(); }
+ 
+   HRESULT Initialize() {
+-    return InitializeInternal(kDxCompilerLib, "DxcCreateInstance");
++    return S_OK;
+   }
+ 
+   HRESULT InitializeForDll(LPCSTR dll, LPCSTR entryPoint) {
+-    return InitializeInternal(dll, entryPoint);
++    return S_OK;
+   }
+ 
+   template <typename TInterface>
+@@ -103,10 +46,7 @@ public:
+   HRESULT CreateInstance(REFCLSID clsid, REFIID riid, IUnknown **pResult) {
+     if (pResult == nullptr)
+       return E_POINTER;
+-    if (m_dll == nullptr)
+-      return E_FAIL;
+-    HRESULT hr = m_createFn(clsid, riid, (LPVOID *)pResult);
+-    return hr;
++    return DxcCreateInstance(clsid, riid, (LPVOID *)pResult);
+   }
+ 
+   template <typename TInterface>
+@@ -118,38 +58,16 @@ public:
+ 
+   HRESULT CreateInstance2(IMalloc *pMalloc, REFCLSID clsid, REFIID riid,
+                           IUnknown **pResult) {
+-    if (pResult == nullptr)
+-      return E_POINTER;
+-    if (m_dll == nullptr)
+-      return E_FAIL;
+-    if (m_createFn2 == nullptr)
+-      return E_FAIL;
+-    HRESULT hr = m_createFn2(pMalloc, clsid, riid, (LPVOID *)pResult);
+-    return hr;
++    return DxcCreateInstance2(pMalloc, clsid, riid, (LPVOID *)pResult);
+   }
+ 
+-  bool HasCreateWithMalloc() const { return m_createFn2 != nullptr; }
++  bool HasCreateWithMalloc() const { return true; }
+ 
+-  bool IsEnabled() const { return m_dll != nullptr; }
++  bool IsEnabled() const { return true; }
+ 
+   void Cleanup() {
+-    if (m_dll != nullptr) {
+-      m_createFn = nullptr;
+-      m_createFn2 = nullptr;
+-#ifdef _WIN32
+-      FreeLibrary(m_dll);
+-#else
+-      ::dlclose(m_dll);
+-#endif
+-      m_dll = nullptr;
+-    }
+   }
+ 
+-  HMODULE Detach() {
+-    HMODULE hModule = m_dll;
+-    m_dll = nullptr;
+-    return hModule;
+-  }
+ };
+ 
+ inline DxcDefine GetDefine(LPCWSTR name, LPCWSTR value) {
+diff --git a/include/dxc/dxcapi.h b/include/dxc/dxcapi.h
+index 95cc56a04..07fe01d08 100644
+--- a/include/dxc/dxcapi.h
++++ b/include/dxc/dxcapi.h
+@@ -15,7 +15,7 @@
+ 
+ #ifdef _WIN32
+ #ifndef DXC_API_IMPORT
+-#define DXC_API_IMPORT __declspec(dllimport)
++#define DXC_API_IMPORT
+ #endif
+ #else
+ #ifndef DXC_API_IMPORT
+diff --git a/lib/DxcSupport/dxcapi.use.cpp b/lib/DxcSupport/dxcapi.use.cpp
+index 399259ef8..c7f2154b0 100644
+--- a/lib/DxcSupport/dxcapi.use.cpp
++++ b/lib/DxcSupport/dxcapi.use.cpp
+@@ -21,11 +21,6 @@
+ 
+ namespace dxc {
+ 
+-const char *kDxCompilerLib =
+-    CMAKE_SHARED_LIBRARY_PREFIX "dxcompiler" CMAKE_SHARED_LIBRARY_SUFFIX;
+-const char *kDxilLib =
+-    CMAKE_SHARED_LIBRARY_PREFIX "dxil" CMAKE_SHARED_LIBRARY_SUFFIX;
+-
+ #ifdef _WIN32
+ static void TrimEOL(char *pMsg) {
+   char *pEnd = pMsg + strlen(pMsg);
+diff --git a/tools/clang/tools/CMakeLists.txt b/tools/clang/tools/CMakeLists.txt
+index 9991de030..889330293 100644
+--- a/tools/clang/tools/CMakeLists.txt
++++ b/tools/clang/tools/CMakeLists.txt
+@@ -23,11 +23,11 @@ endif()
+ add_llvm_external_project(clang-tools-extra extra)
+ 
+ # HLSL Change Starts
++add_subdirectory(dxildll)
+ add_subdirectory(dxcompiler)
+ add_subdirectory(dxclib)
+ add_subdirectory(dxc)
+ add_subdirectory(dxcvalidator)
+-add_subdirectory(dxildll)
+ add_subdirectory(dxa)
+ add_subdirectory(dxopt)
+ add_subdirectory(dxl)
+diff --git a/tools/clang/tools/dxcompiler/CMakeLists.txt b/tools/clang/tools/dxcompiler/CMakeLists.txt
+index 004d2e5ad..cca5e2f11 100644
+--- a/tools/clang/tools/dxcompiler/CMakeLists.txt
++++ b/tools/clang/tools/dxcompiler/CMakeLists.txt
+@@ -54,8 +54,6 @@ set(SOURCES
+   dxcompilerobj.cpp
+   dxcvalidator.cpp
+   DXCompiler.cpp
+-  DXCompiler.rc
+-  DXCompiler.def
+   dxcfilesystem.cpp
+   dxillib.cpp
+   dxcutil.cpp
+@@ -126,13 +124,13 @@ if (MSVC)
+   find_package(DiaSDK REQUIRED) # Used for constants and declarations.
+ endif (MSVC)
+ 
+-add_clang_library(dxcompiler SHARED ${SOURCES})
++add_clang_library(dxcompiler STATIC ${SOURCES})
+ add_dependencies(dxcompiler TablegenHLSLOptions) 
+ if (MSVC)
+   # No DxcEtw on non-Windows platforms.
+   add_dependencies(dxcompiler DxcEtw)
+ endif()
+-target_link_libraries(dxcompiler PRIVATE ${LIBRARIES})
++target_link_libraries(dxcompiler PRIVATE ${LIBRARIES} dxildll)
+ if (ENABLE_SPIRV_CODEGEN)
+   target_link_libraries(dxcompiler PRIVATE clangSPIRV)
+ endif (ENABLE_SPIRV_CODEGEN)
+@@ -145,12 +143,6 @@ set_target_properties(dxcompiler
+   VERSION ${LIBCLANG_LIBRARY_VERSION}
+   DEFINE_SYMBOL _CINDEX_LIB_)
+ 
+-if (WIN32)
+-  set(install_dest RUNTIME DESTINATION bin)
+-else()
+-  set(install_dest LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+-endif()
+-
+ install(TARGETS dxcompiler
+   ${install_dest}
+   COMPONENT dxcompiler)
+diff --git a/tools/clang/tools/dxcompiler/DXCompiler.cpp b/tools/clang/tools/dxcompiler/DXCompiler.cpp
+index c54844144..4f91ea6cc 100644
+--- a/tools/clang/tools/dxcompiler/DXCompiler.cpp
++++ b/tools/clang/tools/dxcompiler/DXCompiler.cpp
+@@ -96,32 +96,25 @@ void __attribute__((destructor)) DllShutdown() {
+   DxcCleanupThreadMalloc();
+ }
+ #else  // LLVM_ON_UNIX
+-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD Reason, LPVOID reserved) {
+-  BOOL result = TRUE;
+-  if (Reason == DLL_PROCESS_ATTACH) {
++extern "C" HRESULT DXC_Init(void)
++{
+     EventRegisterMicrosoft_Windows_DXCompiler_API();
+     DxcEtw_DXCompilerInitialization_Start();
+     HRESULT hr = InitMaybeFail();
+     DxcEtw_DXCompilerInitialization_Stop(hr);
+-    result = SUCCEEDED(hr) ? TRUE : FALSE;
+-  } else if (Reason == DLL_PROCESS_DETACH) {
++    return hr;
++}
++extern "C" void DXC_Done(void)
++{
+     DxcEtw_DXCompilerShutdown_Start();
+     DxcSetThreadMallocToDefault();
+     ::hlsl::options::cleanupHlslOptTable();
+     ::llvm::sys::fs::CleanupPerThreadFileSystem();
+     ::llvm::llvm_shutdown();
+-    if (reserved ==
+-        NULL) { // FreeLibrary has been called or the DLL load failed
+-      DxilLibCleanup(DxilLibCleanUpType::UnloadLibrary);
+-    } else { // Process termination. We should not call FreeLibrary()
+-      DxilLibCleanup(DxilLibCleanUpType::ProcessTermination);
+-    }
++    DxilLibCleanup(DxilLibCleanUpType::UnloadLibrary);
+     DxcClearThreadMalloc();
+     DxcCleanupThreadMalloc();
+     DxcEtw_DXCompilerShutdown_Stop(S_OK);
+     EventUnregisterMicrosoft_Windows_DXCompiler_API();
+-  }
+-
+-  return result;
+ }
+ #endif // LLVM_ON_UNIX
+diff --git a/tools/clang/tools/dxcompiler/dxcapi.cpp b/tools/clang/tools/dxcompiler/dxcapi.cpp
+index a6a877cba..921b31d26 100644
+--- a/tools/clang/tools/dxcompiler/dxcapi.cpp
++++ b/tools/clang/tools/dxcompiler/dxcapi.cpp
+@@ -12,7 +12,7 @@
+ #include "dxc/Support/WinIncludes.h"
+ 
+ #ifdef _WIN32
+-#define DXC_API_IMPORT __declspec(dllexport)
++#define DXC_API_IMPORT
+ #else
+ #define DXC_API_IMPORT __attribute__((visibility("default")))
+ #endif
+diff --git a/tools/clang/tools/dxcompiler/dxillib.cpp b/tools/clang/tools/dxcompiler/dxillib.cpp
+index 72abc869d..2770e3959 100644
+--- a/tools/clang/tools/dxcompiler/dxillib.cpp
++++ b/tools/clang/tools/dxcompiler/dxillib.cpp
+@@ -16,58 +16,24 @@
+ 
+ using namespace dxc;
+ 
+-static DxcDllSupport g_DllSupport;
+-static HRESULT g_DllLibResult = S_OK;
++extern "C" HRESULT DXIL_Init(void);
++extern "C" HRESULT DXIL_Done(void);
++extern "C" HRESULT DXIL_CreateInstance(REFCLSID, REFIID, LPVOID*);
+ 
+-static llvm::sys::Mutex *cs = nullptr;
+-
+-// Check if we can successfully get IDxcValidator from dxil.dll
+-// This function is to prevent multiple attempts to load dxil.dll
+ HRESULT DxilLibInitialize() {
+-  cs = new llvm::sys::Mutex;
+-  cs->lock();
+-  g_DllLibResult = g_DllSupport.InitializeForDll(kDxilLib, "DxcCreateInstance");
+-  cs->unlock();
+-  return S_OK;
++  return DXIL_Init();
+ }
+ 
+ HRESULT DxilLibCleanup(DxilLibCleanUpType type) {
+-  HRESULT hr = S_OK;
+-  if (type == DxilLibCleanUpType::ProcessTermination) {
+-    g_DllSupport.Detach();
+-  } else if (type == DxilLibCleanUpType::UnloadLibrary) {
+-    g_DllSupport.Cleanup();
+-  } else {
+-    hr = E_INVALIDARG;
+-  }
+-  delete cs;
+-  cs = nullptr;
+-  return hr;
++  return DXIL_Done();
+ }
+ 
+-// g_DllLibResult is S_OK by default, check again to see if dxil.dll is loaded
+-// If we fail to load dxil.dll, set g_DllLibResult to E_FAIL so that we don't
+-// have multiple attempts to load dxil.dll
+ bool DxilLibIsEnabled() {
+-  cs->lock();
+-  if (SUCCEEDED(g_DllLibResult)) {
+-    if (!g_DllSupport.IsEnabled()) {
+-      g_DllLibResult =
+-          g_DllSupport.InitializeForDll(kDxilLib, "DxcCreateInstance");
+-    }
+-  }
+-  cs->unlock();
+-  return SUCCEEDED(g_DllLibResult);
++  return true;
+ }
+ 
+ HRESULT DxilLibCreateInstance(REFCLSID rclsid, REFIID riid,
+                               IUnknown **ppInterface) {
+   DXASSERT_NOMSG(ppInterface != nullptr);
+-  HRESULT hr = E_FAIL;
+-  if (DxilLibIsEnabled()) {
+-    cs->lock();
+-    hr = g_DllSupport.CreateInstance(rclsid, riid, ppInterface);
+-    cs->unlock();
+-  }
+-  return hr;
++  return DXIL_CreateInstance(rclsid, riid, (LPVOID*)ppInterface);
+ }
+diff --git a/tools/clang/tools/dxildll/CMakeLists.txt b/tools/clang/tools/dxildll/CMakeLists.txt
+index 67a24d110..be86558a4 100644
+--- a/tools/clang/tools/dxildll/CMakeLists.txt
++++ b/tools/clang/tools/dxildll/CMakeLists.txt
+@@ -37,12 +37,11 @@ include_directories(
+ 
+ set(sources
+   dxildll.cpp
+-  dxildll.def
+   dxcvalidator.cpp
+ )
+ 
+ if (WIN32)
+-add_clang_library(dxildll SHARED ${sources})
++add_clang_library(dxildll STATIC ${sources})
+ list(APPEND DXCLibs
+   kernel32.lib
+   atls.lib
+@@ -70,16 +69,6 @@ add_dependencies(dxildll
+ )
+ endif()
+ 
+-if (WIN32)
+-    get_target_property(sources dxildll SOURCES)
+-
+-    list(APPEND sources dxildll.rc)
+-    set_target_properties(${target_name} PROPERTIES SOURCES "${sources}")
+-
+-    set_property(SOURCE dxildll.rc PROPERTY COMPILE_DEFINITIONS "INCLUDE_HLSL_VERSION_FILE=1")
+-    set_property(SOURCE dxildll.rc PROPERTY COMPILE_OPTIONS "/I" "${HLSL_VERSION_LOCATION}" "/I" "${LLVM_MAIN_SRC_DIR}")
+-endif()
+-
+ set_target_properties(dxildll
+   PROPERTIES
+   OUTPUT_NAME "dxil"
+diff --git a/tools/clang/tools/dxildll/dxildll.cpp b/tools/clang/tools/dxildll/dxildll.cpp
+index 12ca2026c..cc6b04415 100644
+--- a/tools/clang/tools/dxildll/dxildll.cpp
++++ b/tools/clang/tools/dxildll/dxildll.cpp
+@@ -11,7 +11,7 @@
+ ///////////////////////////////////////////////////////////////////////////////
+ 
+ #ifdef _WIN32
+-#define DXC_API_IMPORT
++#define DXC_API_IMPORT static
+ #else
+ #define DXC_API_IMPORT __attribute__((visibility("default")))
+ #endif
+@@ -65,45 +65,19 @@ void __attribute__((destructor)) DllShutdown() {
+ }
+ #else
+ 
+-#pragma warning(disable : 4290)
+-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD Reason, LPVOID) {
+-  if (Reason == DLL_PROCESS_ATTACH) {
+-    EventRegisterMicrosoft_Windows_DxcRuntime_API();
+-    DxcRuntimeEtw_DxcRuntimeInitialization_Start();
+-    HRESULT HR = InitMaybeFail();
+-    DxcRuntimeEtw_DxcRuntimeInitialization_Stop(HR);
+-    if (FAILED(HR)) {
+-      EventUnregisterMicrosoft_Windows_DxcRuntime_API();
+-      return HR;
+-    }
+-  } else if (Reason == DLL_PROCESS_DETACH) {
+-    DxcRuntimeEtw_DxcRuntimeShutdown_Start();
+-    DxcSetThreadMallocToDefault();
+-    ::llvm::sys::fs::CleanupPerThreadFileSystem();
+-    ::llvm::llvm_shutdown();
+-    DxcClearThreadMalloc();
+-    DxcCleanupThreadMalloc();
+-    DxcRuntimeEtw_DxcRuntimeShutdown_Stop(S_OK);
+-    EventUnregisterMicrosoft_Windows_DxcRuntime_API();
+-  }
+-
+-  return TRUE;
++extern "C" HRESULT DXIL_Init(void) {
++  EventRegisterMicrosoft_Windows_DxcRuntime_API();
++  DxcRuntimeEtw_DxcRuntimeInitialization_Start();
++  DxcRuntimeEtw_DxcRuntimeInitialization_Stop(S_OK);
++  return S_OK;
+ }
+-
+-void *__CRTDECL operator new(std::size_t Size) noexcept(false) {
+-  void *PTR = DxcNew(Size);
+-  if (PTR == nullptr)
+-    throw std::bad_alloc();
+-  return PTR;
+-}
+-void *__CRTDECL operator new(std::size_t Size, const std::nothrow_t &) throw() {
+-  return DxcNew(Size);
+-}
+-void __CRTDECL operator delete(void *PTR) throw() { DxcDelete(PTR); }
+-void __CRTDECL operator delete(void *PTR,
+-                               const std::nothrow_t &nothrow_constant) throw() {
+-  DxcDelete(PTR);
++extern "C" HRESULT DXIL_Done(void) {
++  DxcRuntimeEtw_DxcRuntimeShutdown_Start();
++  DxcRuntimeEtw_DxcRuntimeShutdown_Stop(S_OK);
++  EventUnregisterMicrosoft_Windows_DxcRuntime_API();
++  return S_OK;
+ }
++
+ #endif
+ 
+ static HRESULT CreateDxcHashingContainerBuilder(REFIID RRID, LPVOID *V) {
+@@ -150,3 +124,7 @@ DXC_API_IMPORT HRESULT __stdcall DxcCreateInstance2(IMalloc *Malloc,
+   DxcEtw_DXCompilerCreateInstance_Stop(HR);
+   return HR;
+ }
++
++extern "C" HRESULT DXIL_CreateInstance(REFCLSID RCLSID, REFIID RIID, LPVOID *V) {
++  return DxcCreateInstance(RCLSID, RIID, V);
++}
+diff --git a/tools/llvm-config/CMakeLists.txt b/tools/llvm-config/CMakeLists.txt
+index edbd8c950..c7ee5f107 100644
+--- a/tools/llvm-config/CMakeLists.txt
++++ b/tools/llvm-config/CMakeLists.txt
+@@ -47,7 +47,6 @@ if(CMAKE_CROSSCOMPILING)
+     WORKING_DIRECTORY ${LLVM_NATIVE_BUILD}
+     COMMENT "Building native llvm-config...")
+   add_custom_target(${project}NativeLLVMConfig DEPENDS ${${project}_LLVM_CONFIG_EXE})
+-  add_dependencies(${project}NativeLLVMConfig CONFIGURE_LLVM_NATIVE)
+ 
+   add_dependencies(llvm-config ${project}NativeLLVMConfig)
+ endif(CMAKE_CROSSCOMPILING)

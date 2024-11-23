@@ -1,0 +1,45 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3ac3850..e153fbc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -119,7 +119,6 @@ if(SDLSHADERCROSS_VENDORED)
+ 	add_subdirectory(external/DirectXShaderCompiler EXCLUDE_FROM_ALL)
+ 	add_library(DirectXShaderCompiler::dxcompiler ALIAS dxcompiler)
+ 	add_library(DirectXShaderCompiler::dxil ALIAS dxildll)
+-	list(APPEND vendored_targets dxcompiler dxildll)
+ 	add_dependencies(dxcompiler dxildll)
+ 
+ 	export(TARGETS ${vendored_targets} NAMESPACE "SDL3_shadercross::" FILE "SDL3_shadercross-vendored-targets.cmake")
+diff --git a/src/SDL_shadercross.c b/src/SDL_shadercross.c
+index 1124bb5..8758ae0 100644
+--- a/src/SDL_shadercross.c
++++ b/src/SDL_shadercross.c
+@@ -323,6 +323,8 @@ typedef HRESULT(__stdcall *DxcCreateInstanceProc)(
+     REFIID riid,
+     LPVOID *ppv);
+ #else
++HRESULT DXC_Init(void);
++void DXC_Done(void);
+ HRESULT DxcCreateInstance(REFCLSID rclsid, REFIID riid, LPVOID *ppv);
+ #endif
+ 
+@@ -2315,6 +2317,10 @@ bool SDL_ShaderCross_Init(void)
+             dxcompiler_dll = NULL;
+         }
+     }
++    #else
++    if (DXC_Init() < 0) {
++        return false;
++    }
+     #endif
+ 
+     d3dcompiler_dll = SDL_LoadObject(D3DCOMPILER_DLL);
+@@ -2347,6 +2353,8 @@ void SDL_ShaderCross_Quit(void)
+ 
+         SDL_DxcCreateInstance = NULL;
+     }
++    #else
++    DXC_Done();
+     #endif
+ }
+ 

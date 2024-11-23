@@ -245,7 +245,8 @@ call :clone SDL2_compat     "https://github.com/libsdl-org/sdl2-compat"     main
 echo Updating SDL_shadercross submodules
 call git -C source\SDL_shadercross submodule update --init --recursive --quiet || exit /b 1
 call git -C source\SDL_shadercross submodule foreach git reset --quiet --hard HEAD || exit /b 1
-call git apply -p1 --directory=source/SDL_shadercross/external/DirectXShaderCompiler dxc.patch || exit /b 1
+call git apply -p1 --directory=source/SDL_shadercross                                patches/SDL_shadercross.patch       || exit /b 1
+call git apply -p1 --directory=source/SDL_shadercross/external/DirectXShaderCompiler patches/DirectXShaderCompiler.patch || exit /b 1
 
 pushd %SOURCE%\libyuv-%LIBYUV_VERSION%
 echo CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12) > "CMakeLists.txt.correct"
