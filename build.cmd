@@ -42,7 +42,7 @@ set TIFF_VERSION=4.7.0
 set LIBWEBP_VERSION=1.4.0
 set AOM_VERSION=3.11.0
 set LIBYUV_VERSION=464c51a
-set DAV1D_VERSION=1.4.3
+set DAV1D_VERSION=1.5.0
 set LIBAVIF_VERSION=1.1.1
 set LIBJXL_VERSION=0.11.0
 set FREETYPE_VERSION=2.13.3
@@ -207,7 +207,7 @@ call :get "https://download.osgeo.org/libtiff/tiff-%TIFF_VERSION%.tar.gz"       
 call :get "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-%LIBWEBP_VERSION%.tar.gz"                                          || exit /b 1
 call :get "https://storage.googleapis.com/aom-releases/libaom-%AOM_VERSION%.tar.gz"                                                                          || exit /b 1
 call :get "https://chromium.googlesource.com/libyuv/libyuv/+archive/%LIBYUV_VERSION%.tar.gz" libyuv-%LIBYUV_VERSION%.tar.gz %SOURCE%\libyuv-%LIBYUV_VERSION% || exit /b 1
-call :get "https://code.videolan.org/videolan/dav1d/-/archive/%DAV1D_VERSION%/dav1d-%DAV1D_VERSION%.tar.bz2"                                                 || exit /b 1
+call :get "https://downloads.videolan.org/pub/videolan/dav1d/%DAV1D_VERSION%/dav1d-%DAV1D_VERSION%.tar.xz"                                                   || exit /b 1
 call :get "https://github.com/AOMediaCodec/libavif/archive/refs/tags/v%LIBAVIF_VERSION%.tar.gz" libavif-%LIBAVIF_VERSION%.tar.gz                             || exit /b 1
 call :get "https://github.com/libjxl/libjxl/archive/refs/tags/v%LIBJXL_VERSION%.tar.gz" libjxl-%LIBJXL_VERSION%.tar.gz                                       || exit /b 1
 call :get "https://download.savannah.gnu.org/releases/freetype/freetype-%FREETYPE_VERSION%.tar.xz"                                                           || exit /b 1
