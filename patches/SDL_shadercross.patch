@@ -11,35 +11,37 @@ index 3ac3850..e153fbc 100644
  
  	export(TARGETS ${vendored_targets} NAMESPACE "SDL3_shadercross::" FILE "SDL3_shadercross-vendored-targets.cmake")
 diff --git a/src/SDL_shadercross.c b/src/SDL_shadercross.c
-index 1124bb5..8758ae0 100644
+index 0e69c4e..a585976 100644
 --- a/src/SDL_shadercross.c
 +++ b/src/SDL_shadercross.c
-@@ -323,6 +323,8 @@ typedef HRESULT(__stdcall *DxcCreateInstanceProc)(
-     REFIID riid,
-     LPVOID *ppv);
+@@ -310,6 +310,8 @@ struct IDxcUtils
+ #if defined(SDL_PLATFORM_XBOXONE) || defined(SDL_PLATFORM_XBOXSERIES)
+ extern HRESULT __stdcall DxcCreateInstance(REFCLSID rclsid, REFIID riid, LPVOID* ppv);
  #else
 +HRESULT DXC_Init(void);
 +void DXC_Done(void);
- HRESULT DxcCreateInstance(REFCLSID rclsid, REFIID riid, LPVOID *ppv);
+ extern HRESULT DxcCreateInstance(REFCLSID rclsid, REFIID riid, LPVOID *ppv);
  #endif
  
-@@ -2315,6 +2317,10 @@ bool SDL_ShaderCross_Init(void)
-             dxcompiler_dll = NULL;
+@@ -2288,11 +2290,21 @@ bool SDL_ShaderCross_Init(void)
          }
      }
-+    #else
+ 
++#if !defined(SDL_PLATFORM_XBOXONE) && !defined(SDL_PLATFORM_XBOXSERIES)
 +    if (DXC_Init() < 0) {
 +        return false;
 +    }
-     #endif
- 
-     d3dcompiler_dll = SDL_LoadObject(D3DCOMPILER_DLL);
-@@ -2347,6 +2353,8 @@ void SDL_ShaderCross_Quit(void)
- 
-         SDL_DxcCreateInstance = NULL;
-     }
-+    #else
-+    DXC_Done();
-     #endif
++#endif
++
+     return true;
  }
  
+ void SDL_ShaderCross_Quit(void)
+ {
++#if !defined(SDL_PLATFORM_XBOXONE) && !defined(SDL_PLATFORM_XBOXSERIES)
++    DXC_Done();
++#endif
++
+     if (d3dcompiler_dll != NULL) {
+         SDL_UnloadObject(d3dcompiler_dll);
+         d3dcompiler_dll = NULL;
