@@ -1,15 +1,15 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 3ac3850..e153fbc 100644
+index 8d049f4..47020a1 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -119,7 +119,6 @@ if(SDLSHADERCROSS_VENDORED)
- 	add_subdirectory(external/DirectXShaderCompiler EXCLUDE_FROM_ALL)
- 	add_library(DirectXShaderCompiler::dxcompiler ALIAS dxcompiler)
- 	add_library(DirectXShaderCompiler::dxil ALIAS dxildll)
--	list(APPEND vendored_targets dxcompiler dxildll)
- 	add_dependencies(dxcompiler dxildll)
+@@ -121,7 +121,6 @@ if(SDLSHADERCROSS_VENDORED)
+ 		add_subdirectory(external/DirectXShaderCompiler EXCLUDE_FROM_ALL)
+ 		add_library(DirectXShaderCompiler::dxcompiler ALIAS dxcompiler)
+ 		add_library(DirectXShaderCompiler::dxil ALIAS dxildll)
+-		list(APPEND vendored_targets dxcompiler dxildll)
+ 		add_dependencies(dxcompiler dxildll)
+ 	endif()
  
- 	export(TARGETS ${vendored_targets} NAMESPACE "SDL3_shadercross::" FILE "SDL3_shadercross-vendored-targets.cmake")
 diff --git a/src/SDL_shadercross.c b/src/SDL_shadercross.c
 index 0e69c4e..a585976 100644
 --- a/src/SDL_shadercross.c
