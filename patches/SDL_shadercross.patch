@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 8d049f4..47020a1 100644
+index ea4469e..b085a0f 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -121,7 +121,6 @@ if(SDLSHADERCROSS_VENDORED)
+@@ -125,7 +125,6 @@ if(SDLSHADERCROSS_VENDORED)
  		add_subdirectory(external/DirectXShaderCompiler EXCLUDE_FROM_ALL)
  		add_library(DirectXShaderCompiler::dxcompiler ALIAS dxcompiler)
  		add_library(DirectXShaderCompiler::dxil ALIAS dxildll)
@@ -11,19 +11,19 @@ index 8d049f4..47020a1 100644
  	endif()
  
 diff --git a/src/SDL_shadercross.c b/src/SDL_shadercross.c
-index 0e69c4e..a585976 100644
+index 676883b..fc33289 100644
 --- a/src/SDL_shadercross.c
 +++ b/src/SDL_shadercross.c
-@@ -310,6 +310,8 @@ struct IDxcUtils
- #if defined(SDL_PLATFORM_XBOXONE) || defined(SDL_PLATFORM_XBOXSERIES)
+@@ -308,6 +308,8 @@ struct IDxcUtils
+ 
+ /* DXCompiler */
+ #if defined(SDL_PLATFORM_XBOXONE) || defined(SDL_PLATFORM_XBOXSERIES) || defined(SDL_PLATFORM_WINDOWS)
++extern HRESULT DXC_Init(void);
++extern void DXC_Done(void);
  extern HRESULT __stdcall DxcCreateInstance(REFCLSID rclsid, REFIID riid, LPVOID* ppv);
  #else
-+HRESULT DXC_Init(void);
-+void DXC_Done(void);
  extern HRESULT DxcCreateInstance(REFCLSID rclsid, REFIID riid, LPVOID *ppv);
- #endif
- 
-@@ -2288,11 +2290,21 @@ bool SDL_ShaderCross_Init(void)
+@@ -2387,11 +2389,21 @@ bool SDL_ShaderCross_Init(void)
          }
      }
  
