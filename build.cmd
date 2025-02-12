@@ -51,7 +51,7 @@ set LIBOGG_VERSION=1.3.5
 set LIBVORBIS_VERSION=1.3.7
 set OPUS_VERSION=1.5.2
 set OPUSFILE_VERSION=0.12
-set FLAC_VERSION=1.4.3
+set FLAC_VERSION=1.5.0
 set MPG123_VERSION=1.32.10
 set LIBXMP_VERSION=4.6.0
 set LIBGME_VERSION=0.6.3
@@ -216,7 +216,7 @@ call :get "https://downloads.xiph.org/releases/ogg/libogg-%LIBOGG_VERSION%.tar.x
 call :get "https://downloads.xiph.org/releases/vorbis/libvorbis-%LIBVORBIS_VERSION%.tar.xz"                                                                  || exit /b 1
 call :get "https://downloads.xiph.org/releases/opus/opus-%OPUS_VERSION%.tar.gz"                                                                              || exit /b 1
 call :get "https://downloads.xiph.org/releases/opus/opusfile-%OPUSFILE_VERSION%.tar.gz"                                                                      || exit /b 1
-call :get "https://downloads.xiph.org/releases/flac/flac-%FLAC_VERSION%.tar.xz"                                                                              || exit /b 1
+call :get "https://github.com/xiph/flac/releases/download/%FLAC_VERSION%/flac-%FLAC_VERSION%.tar.xz"                                                         || exit /b 1
 call :get "https://download.sourceforge.net/mpg123/mpg123-%MPG123_VERSION%.tar.bz2"                                                                          || exit /b 1
 call :get "https://github.com/libxmp/libxmp/releases/download/libxmp-%LIBXMP_VERSION%/libxmp-%LIBXMP_VERSION%.tar.gz"                                        || exit /b 1
 call :get "https://github.com/libgme/game-music-emu/archive/refs/tags/%LIBGME_VERSION%.tar.gz" libgme-%LIBGME_VERSION%.tar.gz                                || exit /b 1
