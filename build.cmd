@@ -503,7 +503,8 @@ cmake.exe %CMAKE_COMMON_ARGS%              ^
   || exit /b 1
 ninja.exe -C %BUILD%\tiff-%TIFF_VERSION% install || exit /b 1
 
-call git apply -p1 --directory=depend-%TARGET_ARCH% patches/tiff.patch || exit /b 1
+call git apply -p1 --directory=depend-%TARGET_ARCH% patches/tiff.patch || ^
+call git apply -p1 --directory=depend-%TARGET_ARCH% patches/tiff2.patch || exit /b 1
 
 rem
 rem aom
