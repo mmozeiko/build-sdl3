@@ -32,7 +32,7 @@ set NINJA_VERSION=1.12.1
 
 set ZLIB_VERSION=1.3.1
 set BZIP2_VERSION=1.0.8
-set XZ_VERSION=5.6.4
+set XZ_VERSION=5.8.0
 set ZSTD_VERSION=1.5.7
 set LIBPNG_VERSION=1.6.47
 set LIBJPEGTURBO_VERSION=3.1.0
@@ -342,6 +342,8 @@ cmake.exe %CMAKE_COMMON_ARGS%      ^
   -B %BUILD%\xz-%XZ_VERSION%       ^
   -D CMAKE_INSTALL_PREFIX=%DEPEND% ^
   -D BUILD_SHARED_LIBS=OFF         ^
+  -D XZ_NLS=OFF                    ^
+  -D XZ_THREADS=vista              ^
   || exit /b 1
 ninja.exe -C %BUILD%\xz-%XZ_VERSION% install || exit /b 1
 
