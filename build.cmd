@@ -430,7 +430,7 @@ cmake.exe %CMAKE_COMMON_ARGS%           ^
   -D WEBP_BUILD_IMG2WEBP=OFF            ^
   -D WEBP_BUILD_VWEBP=OFF               ^
   -D WEBP_BUILD_WEBPINFO=OFF            ^
-  -D WEBP_BUILD_LIBWEBPMUX=OFF          ^
+  -D WEBP_BUILD_LIBWEBPMUX=ON           ^
   -D WEBP_BUILD_WEBPMUX=OFF             ^
   -D WEBP_BUILD_EXTRAS=OFF              ^
   -D WEBP_BUILD_WEBP_JS=OFF             ^
