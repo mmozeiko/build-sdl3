@@ -881,7 +881,7 @@ rem SDL_image
 rem dependencies: avif, libjxl, tiff, libjpeg-turbo, libpng, libwebp
 rem
 
-set SDL3_IMAGE_LINK_FLAGS=-LIBPATH:%DEPEND%\lib brotlicommon.lib brotlidec.lib hwy.lib libsharpyuv.lib yuv.lib libdav1d.a aom.lib
+set SDL3_IMAGE_LINK_FLAGS=-LIBPATH:%DEPEND:\=/%/lib brotlicommon.lib brotlidec.lib hwy.lib libsharpyuv.lib yuv.lib libdav1d.a aom.lib
 
 cmake.exe %CMAKE_COMMON_ARGS%                            ^
   -S %SOURCE%\SDL_image                                  ^
@@ -929,7 +929,7 @@ rem SDL_mixer
 rem dependencies: libgme, libxmp, mpg123, flac, opusfile, vorbis, wavpack
 rem
 
-set SDL3_MIXER_LINK_FLAGS=-LIBPATH:%DEPEND%\lib zlibstatic.lib opus.lib
+set SDL3_MIXER_LINK_FLAGS=-LIBPATH:%DEPEND:\=/%/lib zlibstatic.lib opus.lib
 
 cmake.exe %CMAKE_COMMON_ARGS%                            ^
   -S %SOURCE%\SDL_mixer                                  ^
@@ -984,7 +984,7 @@ rem SDL_ttf
 rem dependencies: freetype, harfbuzz
 rem
 
-set SDL3_TTF_LINK_FLAGS=-LIBPATH:%DEPEND%\lib brotlicommon.lib brotlidec.lib libbz2.lib zlibstatic.lib libpng16_static.lib
+set SDL3_TTF_LINK_FLAGS=-LIBPATH:%DEPEND:\=/%/lib brotlicommon.lib brotlidec.lib libbz2.lib zlibstatic.lib libpng16_static.lib
 
 cmake.exe %CMAKE_COMMON_ARGS%                          ^
   -S %SOURCE%\SDL_ttf                                  ^
@@ -1140,6 +1140,7 @@ if "%GITHUB_WORKFLOW%" neq "" (
   :dateok
   set OUTPUT_DATE=%LDATE:~0,4%-%LDATE:~4,2%-%LDATE:~6,2%
 
+  del /q %OUTPUT%\bin\sdl2-config 1>nul 2>nul
   del /q %OUTPUT%\bin\*.pdb %OUTPUT%\lib\SDL3_test.lib %OUTPUT%\lib\SDL2_test.lib 1>nul 2>nul
   del /q %OUTPUT%\include\SDL3\SDL_test*.h %OUTPUT%\include\SDL2\SDL_test*.h 1>nul 2>nul
   rd /s /q %OUTPUT%\cmake %OUTPUT%\lib\pkgconfig %OUTPUT%\licenses %OUTPUT%\share 1>nul 2>nul
@@ -1147,16 +1148,16 @@ if "%GITHUB_WORKFLOW%" neq "" (
   echo Creating SDL3-%TARGET_ARCH%-!OUTPUT_DATE!.zip
   %SZIP% a -y -r -mx=9 SDL3-%TARGET_ARCH%-!OUTPUT_DATE!.zip SDL3-%TARGET_ARCH% || exit /b 1
 
-  echo OUTPUT_DATE=!OUTPUT_DATE!>>%GITHUB_OUTPUT%
+  echo OUTPUT_DATE=!OUTPUT_DATE!>>"%GITHUB_OUTPUT%"
 
-  echo SDL_COMMIT=%SDL_COMMIT%>>%GITHUB_OUTPUT%
-  echo SDL_IMAGE_COMMIT=%SDL_IMAGE_COMMIT%>>%GITHUB_OUTPUT%
-  echo SDL_MIXER_COMMIT=%SDL_MIXER_COMMIT%>>%GITHUB_OUTPUT%
-  echo SDL_TTF_COMMIT=%SDL_TTF_COMMIT%>>%GITHUB_OUTPUT%
-  echo SDL_RTF_COMMIT=%SDL_RTF_COMMIT%>>%GITHUB_OUTPUT%
-  echo SDL_NET_COMMIT=%SDL_NET_COMMIT%>>%GITHUB_OUTPUT%
-  echo SDL_SHADERCROSS_COMMIT=%SDL_SHADERCROSS_COMMIT%>>%GITHUB_OUTPUT%
-  echo SDL2_COMPAT_COMMIT=%SDL2_COMPAT_COMMIT%>>%GITHUB_OUTPUT%
+  echo SDL_COMMIT=%SDL_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL_IMAGE_COMMIT=%SDL_IMAGE_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL_MIXER_COMMIT=%SDL_MIXER_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL_TTF_COMMIT=%SDL_TTF_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL_RTF_COMMIT=%SDL_RTF_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL_NET_COMMIT=%SDL_NET_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL_SHADERCROSS_COMMIT=%SDL_SHADERCROSS_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL2_COMPAT_COMMIT=%SDL2_COMPAT_COMMIT%>>"%GITHUB_OUTPUT%"
 )
 
 rem
