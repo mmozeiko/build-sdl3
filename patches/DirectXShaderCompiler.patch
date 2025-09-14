@@ -1,8 +1,24 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 8f7db9978..db538e1fe 100644
+index 2a022d814..67b476c03 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -633,11 +633,6 @@ include_directories( ${LLVM_INCLUDE_DIR} ${LLVM_MAIN_INCLUDE_DIR})
+@@ -395,12 +395,12 @@ option(LLVM_INCLUDE_EXAMPLES "Generate build targets for the LLVM examples" ON)
+ 
+ option(LLVM_BUILD_TESTS
+   "Build LLVM unit tests. If OFF, just generate build targets." OFF)
+-option(LLVM_INCLUDE_TESTS "Generate build targets for the LLVM unit tests." ON)
++option(LLVM_INCLUDE_TESTS "Generate build targets for the LLVM unit tests." OFF)
+ 
+-option(HLSL_INCLUDE_TESTS  "Generate build targets for the HLSL unit tests." ON)
++option(HLSL_INCLUDE_TESTS  "Generate build targets for the HLSL unit tests." OFF)
+ 
+ option (LLVM_BUILD_DOCS "Build the llvm documentation." OFF)
+-option (LLVM_INCLUDE_DOCS "Generate build targets for llvm documentation." ON)
++option (LLVM_INCLUDE_DOCS "Generate build targets for llvm documentation." OFF)
+ option (LLVM_ENABLE_DOXYGEN "Use doxygen to generate llvm API documentation." OFF)
+ option (LLVM_ENABLE_SPHINX "Use Sphinx to generate llvm documentation." OFF)
+ 
+@@ -624,11 +624,6 @@ include_directories( ${LLVM_INCLUDE_DIR} ${LLVM_MAIN_INCLUDE_DIR})
  
  include_directories( ${LLVM_INCLUDE_DIR}/dxc/Tracing) # HLSL Change
  

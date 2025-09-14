@@ -505,8 +505,7 @@ cmake.exe %CMAKE_COMMON_ARGS%              ^
   || exit /b 1
 ninja.exe -C %BUILD%\tiff-%TIFF_VERSION% install || exit /b 1
 
-call git apply -p1 --directory=depend-%TARGET_ARCH% patches/tiff.patch || ^
-call git apply -p1 --directory=depend-%TARGET_ARCH% patches/tiff2.patch || exit /b 1
+call git apply -p1 --directory=depend-%TARGET_ARCH% patches/tiff.patch || exit /b 1
 
 rem
 rem aom
@@ -1043,7 +1042,7 @@ rem SDL_shadercross
 rem
 
 if "%HOST_ARCH%" neq "%TARGET_ARCH%" (
-  set PATH=!OLD_PATH!
+  setlocal
   call "!VS!\Common7\Tools\VsDevCmd.bat" -arch=!HOST_ARCH! -host_arch=!HOST_ARCH! -startdir=none -no_logo || exit /b 1
 
   cmake.exe                                                          ^
@@ -1059,8 +1058,7 @@ if "%HOST_ARCH%" neq "%TARGET_ARCH%" (
     || exit /b 1
   ninja.exe -C %BUILD%\SDL_shadercross\external\DirectXShaderCompiler-native llvm-tblgen clang-tblgen || exit /b 1
 
-  set PATH=!OLD_PATH!
-  call "!VS!\Common7\Tools\VsDevCmd.bat" -arch=!TARGET_ARCH! -host_arch=!HOST_ARCH! -startdir=none -no_logo || exit /b 1
+  endlocal
   set PATH=%BUILD%\SDL_shadercross\external\DirectXShaderCompiler-native\bin;!PATH!
 )
 
@@ -1136,9 +1134,7 @@ rem
 
 if "%GITHUB_WORKFLOW%" neq "" (
 
-  for /F "skip=1" %%D in ('WMIC OS GET LocalDateTime') do (set LDATE=%%D & goto :dateok)
-  :dateok
-  set OUTPUT_DATE=%LDATE:~0,4%-%LDATE:~4,2%-%LDATE:~6,2%
+  for /f "delims=" %%a in ('powershell -command "Get-Date -Format \"yyyy-MM-dd\""') do set "OUTPUT_DATE=%%a"
 
   del /q %OUTPUT%\bin\sdl2-config 1>nul 2>nul
   del /q %OUTPUT%\bin\*.pdb %OUTPUT%\lib\SDL3_test.lib %OUTPUT%\lib\SDL2_test.lib 1>nul 2>nul
