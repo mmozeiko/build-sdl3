@@ -165,12 +165,12 @@ if "%TARGET_ARCH%" equ "x64" (
   where /q yasm.exe || (
     echo Downloading yasm
     pushd %DOWNLOAD%
-    curl -sfLo yasm.exe https://www.tortall.net/projects/yasm/releases/yasm-%YASM_VERSION%-win64.exe || exit /b 1
+    curl.exe -sfLo yasm.exe https://github.com/yasm/yasm/releases/download/v%YASM_VERSION%/yasm-%YASM_VERSION%-win64.exe || exit /b 1
     popd
 
     if "%GITHUB_WORKFLOW%" neq "" (
       rem Install VS2010 redistributable
-      curl -sfLO https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe || exit /b 1
+      curl.exe -sfLO https://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe || exit /b 1
       start /wait vcredist_x64.exe /q /norestart
       del /q vcredist_x64.exe
     )
