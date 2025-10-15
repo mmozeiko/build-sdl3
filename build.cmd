@@ -9,6 +9,8 @@ if "%PROCESSOR_ARCHITECTURE%" equ "AMD64" (
   set HOST_ARCH=x64
 ) else if "%PROCESSOR_ARCHITECTURE%" equ "ARM64" (
   set HOST_ARCH=arm64
+) else (
+  echo Unsupported host architecture^^!
 )
 
 if "%1" equ "x64" (
@@ -56,7 +58,6 @@ set MPG123_VERSION=1.33.2
 set LIBXMP_VERSION=4.6.3
 set LIBGME_VERSION=0.6.4
 set WAVPACK_VERSION=5.8.1
-set LIBSNDFILE_VERSION=1.2.2
 
 rem libjxl dependencies
 
@@ -92,35 +93,13 @@ rem
 rem Dependencies
 rem
 
-where /q git.exe || (
-  echo ERROR: "git.exe" not found
-  exit /b 1
-)
-
-where /q curl.exe || (
-  echo ERROR: "curl.exe" not found
-  exit /b 1
-)
-
-where /q cmake.exe || (
-  echo ERROR: "cmake.exe" not found
-  exit /b 1
-)
-
-where /q perl.exe || (
-  echo ERROR: "perl.exe" not found
-  exit /b 1
-)
-
-where /q python.exe || (
-  echo ERROR: "python.exe" not found
-  exit /b 1
-)
-
-where /q pip.exe || (
-  echo ERROR: "pip.exe" not found
-  exit /b 1
-)
+where /q git.exe    || echo ERROR: "git.exe" not found    && exit /b 1
+where /q tar.exe    || echo ERROR: "git.exe" not found    && exit /b 1
+where /q curl.exe   || echo ERROR: "curl.exe" not found   && exit /b 1
+where /q cmake.exe  || echo ERROR: "cmake.exe" not found  && exit /b 1
+where /q perl.exe   || echo ERROR: "perl.exe" not found   && exit /b 1
+where /q python.exe || echo ERROR: "python.exe" not found && exit /b 1
+where /q pip.exe    || echo ERROR: "pip.exe" not found    && exit /b 1
 
 where /q meson.exe || (
   pip.exe install meson
@@ -128,20 +107,6 @@ where /q meson.exe || (
     echo ERROR: "meson.exe" not found
     exit /b 1
   )
-)
-
-rem
-rem 7-Zip
-rem
-
-if exist "%ProgramFiles%\7-Zip\7z.exe" (
-  set SZIP="%ProgramFiles%\7-Zip\7z.exe"
-) else (
-  where /q 7za.exe || (
-    echo ERROR: 7-Zip installation or "7za.exe" not found
-    exit /b 1
-  )
-  set SZIP=7za.exe
 )
 
 rem
@@ -153,10 +118,8 @@ if "%TARGET_ARCH%" equ "x64" (
   where /q nasm.exe || (
     echo Downloading nasm
     pushd %DOWNLOAD%
-    curl.exe -sfLo nasm.zip "https://www.nasm.us/pub/nasm/releasebuilds/%NASM_VERSION%/win64/nasm-%NASM_VERSION%-win64.zip"
-    %SZIP% x -bb0 -y nasm.zip nasm-%NASM_VERSION%\nasm.exe 1>nul 2>nul || exit /b 1
-    move nasm-%NASM_VERSION%\nasm.exe nasm.exe 1>nul 2>nul
-    rd /s /q nasm-%NASM_VERSION% 1>nul 2>nul
+    curl.exe -sfLo nasm.zip "https://www.nasm.us/pub/nasm/releasebuilds/%NASM_VERSION%/win64/nasm-%NASM_VERSION%-win64.zip" || exit /b 1
+    tar.exe -xf nasm-%NASM_VERSION%-win64.zip --strip-components=1 nasm-%NASM_VERSION%/nasm.exe || exit /b 1
     popd
   )
   nasm.exe --version || exit /b 1
@@ -164,9 +127,7 @@ if "%TARGET_ARCH%" equ "x64" (
   rem yasm is used for mpg123
   where /q yasm.exe || (
     echo Downloading yasm
-    pushd %DOWNLOAD%
-    curl.exe -sfLo yasm.exe https://github.com/yasm/yasm/releases/download/v%YASM_VERSION%/yasm-%YASM_VERSION%-win64.exe || exit /b 1
-    popd
+    curl.exe -sfLo %DOWNLOAD%\yasm.exe https://github.com/yasm/yasm/releases/download/v%YASM_VERSION%/yasm-%YASM_VERSION%-win64.exe || exit /b 1
 
     if "%GITHUB_WORKFLOW%" neq "" (
       rem Install VS2010 redistributable
@@ -180,14 +141,12 @@ if "%TARGET_ARCH%" equ "x64" (
 
 where /q ninja.exe || (
   echo Downloading ninja
-  pushd %DOWNLOAD%
   if "%HOST_ARCH%" equ "x64" (
-    curl -Lsfo ninja-win.zip "https://github.com/ninja-build/ninja/releases/download/v%NINJA_VERSION%/ninja-win.zip" || exit /b 1
+    curl.exe -sfLo %DOWNLOAD%\ninja-win.zip "https://github.com/ninja-build/ninja/releases/download/v%NINJA_VERSION%/ninja-win.zip" || exit /b 1
   ) else if "%HOST_ARCH%" equ "arm64" (
-    curl -Lsfo ninja-win.zip "https://github.com/ninja-build/ninja/releases/download/v%NINJA_VERSION%/ninja-winarm64.zip" || exit /b 1
+    curl.exe -sfLo %DOWNLOAD%\ninja-win.zip "https://github.com/ninja-build/ninja/releases/download/v%NINJA_VERSION%/ninja-winarm64.zip" || exit /b 1
   )
-  %SZIP% x -bb0 -y ninja-win.zip 1>nul 2>nul || exit /b 1
-  popd
+  tar.exe -C %DOWNLOAD% -xf %DOWNLOAD%\ninja-win.zip || exit /b 1
 )
 ninja.exe --version || exit /b 1
 
@@ -221,7 +180,6 @@ call :get "https://download.sourceforge.net/mpg123/mpg123-%MPG123_VERSION%.tar.b
 call :get "https://github.com/libxmp/libxmp/releases/download/libxmp-%LIBXMP_VERSION%/libxmp-%LIBXMP_VERSION%.tar.gz"                                        || exit /b 1
 call :get "https://github.com/libgme/game-music-emu/archive/refs/tags/%LIBGME_VERSION%.tar.gz" libgme-%LIBGME_VERSION%.tar.gz                                || exit /b 1
 call :get "https://github.com/dbry/WavPack/releases/download/%WAVPACK_VERSION%/wavpack-%WAVPACK_VERSION%.tar.xz"                                             || exit /b 1
-call :get "https://github.com/libsndfile/libsndfile/releases/download/%LIBSNDFILE_VERSION%/libsndfile-%LIBSNDFILE_VERSION%.tar.xz"                           || exit /b 1
 
 rd /s /q %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 rd /s /q %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
@@ -259,8 +217,6 @@ call git apply -p1 --directory=source/flac-%FLAC_VERSION%                       
 rem
 rem MSVC Environment
 rem
-
-set OLD_PATH=%PATH%
 
 where /q cl.exe || (
   for /f "tokens=*" %%i in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath') do set VS=%%i
@@ -380,7 +336,6 @@ cmake.exe %CMAKE_COMMON_ARGS%         ^
   -D PNG_SHARED=OFF                   ^
   -D PNG_TESTS=OFF                    ^
   -D PNG_TOOLS=OFF                    ^
-  -D PNG_DEBUG=OFF                    ^
   -D PNG_HARDWARE_OPTIMIZATIONS=ON    ^
   || exit /b 1
 ninja.exe -C %BUILD%\libpng-%LIBPNG_VERSION% install || exit /b 1
@@ -483,7 +438,6 @@ cmake.exe %CMAKE_COMMON_ARGS%              ^
   -D BUILD_SHARED_LIBS=OFF                 ^
   -D WebP_LIBRARY=%DEPEND%\lib\libwebp.lib ^
   -D tiff-tools=OFF                        ^
-  -D tiff-tools-unsupported=OFF            ^
   -D tiff-tests=OFF                        ^
   -D tiff-contrib=OFF                      ^
   -D tiff-docs=OFF                         ^
@@ -817,7 +771,9 @@ cmake.exe %CMAKE_COMMON_ARGS%                 ^
   -D CMAKE_INSTALL_PREFIX=%DEPEND%            ^
   -D CMAKE_CXX_FLAGS=-DBLARGG_EXPORT=         ^
   -D BUILD_SHARED_LIBS=OFF                    ^
-  -D ENABLE_UBSAN=OFF                         ^
+  -D GME_ENABLE_UBSAN=OFF                     ^
+  -D GME_BUILD_TESTING=OFF                    ^
+  -D GME_BUILD_EXAMPLES=OFF                   ^
   -D ZLIB_LIBRARY=%DEPEND%\lib\zlibstatic.lib ^
   || exit /b 1
 ninja.exe -C %BUILD%\game-music-emu-%LIBGME_VERSION% install || exit /b 1
@@ -845,23 +801,6 @@ cmake.exe %CMAKE_COMMON_ARGS%           ^
   -D WAVPACK_BUILD_WINAMP_PLUGIN=OFF    ^
   || exit /b 1
 ninja.exe -C %BUILD%\wavpack-%WAVPACK_VERSION% install || exit /b 1
-
-rem
-rem libsndfile
-rem
-
-cmake.exe %CMAKE_COMMON_ARGS%                 ^
-  -S %SOURCE%\libsndfile-%LIBSNDFILE_VERSION% ^
-  -B %BUILD%\libsndfile-%LIBSNDFILE_VERSION%  ^
-  -D CMAKE_INSTALL_PREFIX=%DEPEND%            ^
-  -D BUILD_SHARED_LIBS=OFF                    ^
-  -D BUILD_PROGRAMS=OFF                       ^
-  -D BUILD_EXAMPLES=OFF                       ^
-  -D BUILD_TESTING=OFF                        ^
-  -D ENABLE_EXTERNAL_LIBS=OFF                 ^
-  -D ENABLE_MPEG=OFF                          ^
-  || exit /b 1
-ninja.exe -C %BUILD%\libsndfile-%LIBSNDFILE_VERSION% install || exit /b 1
 
 rem
 rem SDL
@@ -941,40 +880,24 @@ cmake.exe %CMAKE_COMMON_ARGS%                            ^
   -D SDLMIXER_DEPS_SHARED=OFF                            ^
   -D SDLMIXER_VENDORED=OFF                               ^
   -D SDLMIXER_WERROR=OFF                                 ^
-  -D SDLMIXER_SAMPLES=OFF                                ^
-  -D SDLMIXER_CMD=OFF                                    ^
-  -D SDLMIXER_SNDFILE=ON                                 ^
-  -D SDLMIXER_SNDFILE_SHARED=OFF                         ^
-  -D SDLMIXER_FLAC=ON                                    ^
+  -D SDLMIXER_STRICT=ON                                  ^
+  -D SDLMIXER_TESTS=OFF                                  ^
+  -D SDLMIXER_AIFF=ON                                    ^
+  -D SDLMIXER_WAVE=ON                                    ^
+  -D SDLMIXER_VOC=ON                                     ^
+  -D SDLMIXER_AU=ON                                      ^
   -D SDLMIXER_FLAC_LIBFLAC=ON                            ^
-  -D SDLMIXER_FLAC_LIBFLAC_SHARED=OFF                    ^
   -D SDLMIXER_FLAC_DRFLAC=OFF                            ^
   -D SDLMIXER_GME=ON                                     ^
-  -D SDLMIXER_GME_SHARED=OFF                             ^
-  -D SDLMIXER_MOD=ON                                     ^
-  -D SDLMIXER_MOD_MODPLUG=OFF                            ^
-  -D SDLMIXER_MOD_MODPLUG_SHARED=OFF                     ^
   -D SDLMIXER_MOD_XMP=ON                                 ^
-  -D SDLMIXER_MOD_XMP_LITE=OFF                           ^
-  -D SDLMIXER_MOD_XMP_SHARED=OFF                         ^
-  -D SDLMIXER_MP3=ON                                     ^
-  -D SDLMIXER_MP3_MINIMP3=OFF                            ^
+  -D SDLMIXER_MP3_DRMP3=OFF                              ^
   -D SDLMIXER_MP3_MPG123=ON                              ^
-  -D SDLMIXER_MP3_MPG123_SHARED=OFF                      ^
-  -D SDLMIXER_MIDI=ON                                    ^
   -D SDLMIXER_MIDI_FLUIDSYNTH=OFF                        ^
-  -D SDLMIXER_MIDI_FLUIDSYNTH_SHARED=OFF                 ^
-  -D SDLMIXER_MIDI_NATIVE=ON                             ^
-  -D SDLMIXER_MIDI_TIMIDITY=OFF                          ^
+  -D SDLMIXER_MIDI_TIMIDITY=ON                           ^
   -D SDLMIXER_OPUS=ON                                    ^
-  -D SDLMIXER_OPUS_SHARED=OFF                            ^
-  -D SDLMIXER_VORBIS="VORBISFILE"                        ^
-  -D SDLMIXER_VORBIS_TREMOR_SHARED=OFF                   ^
-  -D SDLMIXER_VORBIS_VORBISFILE_SHARED=OFF               ^
-  -D SDLMIXER_WAVE=ON                                    ^
+  -D SDLMIXER_VORBIS_STB=OFF                             ^
+  -D SDLMIXER_VORBIS_VORBISFILE=ON                       ^
   -D SDLMIXER_WAVPACK=ON                                 ^
-  -D SDLMIXER_WAVPACK_DSD=ON                             ^
-  -D SDLMIXER_WAVPACK_SHARED=OFF                         ^
   || exit /b 1
 ninja.exe -C %BUILD%\SDL_mixer install || exit /b 1
 
@@ -1142,7 +1065,7 @@ if "%GITHUB_WORKFLOW%" neq "" (
   rd /s /q %OUTPUT%\cmake %OUTPUT%\lib\pkgconfig %OUTPUT%\licenses %OUTPUT%\share 1>nul 2>nul
 
   echo Creating SDL3-%TARGET_ARCH%-!OUTPUT_DATE!.zip
-  %SZIP% a -y -r -mx=9 SDL3-%TARGET_ARCH%-!OUTPUT_DATE!.zip SDL3-%TARGET_ARCH% || exit /b 1
+  tar.exe -cavf SDL3-%TARGET_ARCH%-!OUTPUT_DATE!.zip SDL3-%TARGET_ARCH% || exit /b 1
 
   echo OUTPUT_DATE=!OUTPUT_DATE!>>"%GITHUB_OUTPUT%"
 
@@ -1190,10 +1113,7 @@ if "%3" equ "" (
   if not exist "%3" mkdir "%3"
   pushd %3
 )
-if /i "%DNAME:~0,8%" equ "harfbuzz" set SKIP_EXTRA=-xr^^!README
-%SZIP% x -bb0 -y %ARCHIVE% -so | %SZIP% x -bb0 -y -ttar -si -aoa -xr^^!*\tools\benchmark\metrics -xr^^!*\tests\cli-tests -xr^^!*\lib\lib.gni !SKIP_EXTRA! 1>nul 2>nul
-set SKIP_EXTRA=
-if exist pax_global_header del /q pax_global_header
+tar.exe -xf %ARCHIVE% || exit /b 1
 popd
 goto :eof
 
