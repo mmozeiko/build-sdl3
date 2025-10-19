@@ -119,7 +119,7 @@ if "%TARGET_ARCH%" equ "x64" (
     echo Downloading nasm
     pushd %DOWNLOAD%
     curl.exe -sfLo nasm.zip "https://www.nasm.us/pub/nasm/releasebuilds/%NASM_VERSION%/win64/nasm-%NASM_VERSION%-win64.zip" || exit /b 1
-    tar.exe -xf nasm-%NASM_VERSION%-win64.zip --strip-components=1 nasm-%NASM_VERSION%/nasm.exe || exit /b 1
+    tar.exe -xf nasm.zip --strip-components=1 nasm-%NASM_VERSION%/nasm.exe || exit /b 1
     popd
   )
   nasm.exe --version || exit /b 1
