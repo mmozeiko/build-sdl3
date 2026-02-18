@@ -7,7 +7,7 @@ index 340e2fb..9c3a4fe 100644
  set_target_properties(TIFF::tiff PROPERTIES
    INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
 -  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:ZLIB::ZLIB>;\$<LINK_ONLY:JPEG::JPEG>;\$<LINK_ONLY:JBIG::JBIG>;\$<LINK_ONLY:LERC::LERC>;\$<LINK_ONLY:liblzma::liblzma>;\$<LINK_ONLY:ZSTD::ZSTD>;\$<LINK_ONLY:WebP::webp>"
-+  INTERFACE_LINK_LIBRARIES "zlibstatic.lib;jpeg-static.lib;jbig.lib;Lerc.lib;lzma.lib;zstd_static.lib;\$<LINK_ONLY:WebP::webp>"
++  INTERFACE_LINK_LIBRARIES "zs.lib;jpeg-static.lib;jbig.lib;Lerc.lib;lzma.lib;zstd_static.lib;\$<LINK_ONLY:WebP::webp>"
  )
  
  # Create imported target TIFF::tiffxx

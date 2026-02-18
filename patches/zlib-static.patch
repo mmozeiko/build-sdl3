@@ -1,0 +1,13 @@
+diff --git a/lib/cmake/zlib/ZLIBConfig.cmake b/lib/cmake/zlib/ZLIBConfig.cmake
+index 94fa6f8..05405e2 100644
+--- a/lib/cmake/zlib/ZLIBConfig.cmake
++++ b/lib/cmake/zlib/ZLIBConfig.cmake
+@@ -24,7 +24,7 @@ endmacro()
+ 
+ ####################################################################################
+ 
+-set(_ZLIB_supported_components "shared" "static")
++set(_ZLIB_supported_components "static")
+ 
+ if(ZLIB_FIND_COMPONENTS)
+     foreach(_comp ${ZLIB_FIND_COMPONENTS})

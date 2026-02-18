@@ -1,0 +1,13 @@
+diff --git a/lib/cmake/PNG/PNGTargets.cmake b/lib/cmake/PNG/PNGTargets.cmake
+index 287ee02..2740ee4 100644
+--- a/lib/cmake/PNG/PNGTargets.cmake
++++ b/lib/cmake/PNG/PNGTargets.cmake
+@@ -60,7 +60,7 @@ add_library(PNG::png_static STATIC IMPORTED)
+ 
+ set_target_properties(PNG::png_static PROPERTIES
+   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include/libpng16"
+-  INTERFACE_LINK_LIBRARIES "ZLIB::ZLIB"
++  INTERFACE_LINK_LIBRARIES "ZLIB::ZLIBSTATIC"
+   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "include/libpng16"
+ )
+ 
