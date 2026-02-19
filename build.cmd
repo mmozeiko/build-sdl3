@@ -58,6 +58,8 @@ set MPG123_VERSION=1.33.4
 set LIBXMP_VERSION=4.6.3
 set LIBGME_VERSION=0.6.4
 set WAVPACK_VERSION=5.9.0
+set PLUTOVG_VERSION=1.3.2
+set PLUTOSVG_VERSION=0.0.7
 
 rem libjxl dependencies
 
@@ -180,6 +182,8 @@ call :get "https://download.sourceforge.net/mpg123/mpg123-%MPG123_VERSION%.tar.b
 call :get "https://github.com/libxmp/libxmp/releases/download/libxmp-%LIBXMP_VERSION%/libxmp-%LIBXMP_VERSION%.tar.gz"                                        || exit /b 1
 call :get "https://github.com/libgme/game-music-emu/archive/refs/tags/%LIBGME_VERSION%.tar.gz" libgme-%LIBGME_VERSION%.tar.gz                                || exit /b 1
 call :get "https://github.com/dbry/WavPack/releases/download/%WAVPACK_VERSION%/wavpack-%WAVPACK_VERSION%.tar.xz"                                             || exit /b 1
+call :get "https://github.com/sammycage/plutovg/archive/refs/tags/v%PLUTOVG_VERSION%.tar.gz" plutovg-%PLUTOVG_VERSION%.tar.gz                                || exit /b 1
+call :get "https://github.com/sammycage/plutosvg/archive/refs/tags/v%PLUTOSVG_VERSION%.tar.gz" plutosvg-%PLUTOVG_VERSION%.tar.gz                             || exit /b 1
 
 rd /s /q %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
 rd /s /q %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
@@ -810,6 +814,34 @@ cmake.exe %CMAKE_COMMON_ARGS%           ^
 ninja.exe -C %BUILD%\wavpack-%WAVPACK_VERSION% install || exit /b 1
 
 rem
+rem plutovg
+rem
+
+cmake.exe %CMAKE_COMMON_ARGS%           ^
+  -S %SOURCE%\plutovg-%PLUTOVG_VERSION% ^
+  -B %BUILD%\plutovg-%PLUTOVG_VERSION%  ^
+  -D CMAKE_INSTALL_PREFIX=%DEPEND%      ^
+  -D BUILD_SHARED_LIBS=OFF              ^
+  -D PLUTOVG_BUILD_EXAMPLES=OFF         ^
+  || exit /b 1
+ninja.exe -C %BUILD%\plutovg-%PLUTOVG_VERSION% install || exit /b 1
+
+rem
+rem plutosvg
+rem dependencies: plutovg, freetype
+rem
+
+cmake.exe %CMAKE_COMMON_ARGS%             ^
+  -S %SOURCE%\plutosvg-%PLUTOSVG_VERSION% ^
+  -B %BUILD%\plutosvg-%PLUTOSVG_VERSION%  ^
+  -D CMAKE_INSTALL_PREFIX=%DEPEND%        ^
+  -D BUILD_SHARED_LIBS=OFF                ^
+  -D PLUTOSVG_ENABLE_FREETYPE=ON          ^
+  -D PLUTOSVG_BUILD_EXAMPLES=OFF          ^
+  || exit /b 1
+ninja.exe -C %BUILD%\plutosvg-%PLUTOSVG_VERSION% install || exit /b 1
+
+rem
 rem SDL
 rem
 
@@ -912,7 +944,7 @@ ninja.exe -C %BUILD%\SDL_mixer install || exit /b 1
 
 rem
 rem SDL_ttf
-rem dependencies: freetype, harfbuzz
+rem dependencies: freetype, harfbuzz, plutosvg
 rem
 
 set SDL3_TTF_LINK_FLAGS=-LIBPATH:%DEPEND:\=/%/lib brotlicommon.lib brotlidec.lib libbz2.lib zs.lib libpng16_static.lib
@@ -923,6 +955,7 @@ cmake.exe %CMAKE_COMMON_ARGS%                          ^
   -D CMAKE_INSTALL_PREFIX=%OUTPUT%                     ^
   -D CMAKE_PREFIX_PATH=%DEPEND%                        ^
   -D CMAKE_SHARED_LINKER_FLAGS="%SDL3_TTF_LINK_FLAGS%" ^
+  -D CMAKE_C_FLAGS="-DPLUTOSVG_BUILD_STATIC"           ^
   -D BUILD_SHARED_LIBS=ON                              ^
   -D SDL3_ROOT=%OUTPUT%                                ^
   -D SDLTTF_STRICT=ON                                  ^
@@ -931,7 +964,7 @@ cmake.exe %CMAKE_COMMON_ARGS%                          ^
   -D SDLTTF_SAMPLES=OFF                                ^
   -D SDLTTF_FREETYPE=ON                                ^
   -D SDLTTF_HARFBUZZ=ON                                ^
-  -D SDLTTF_PLUTOSVG=OFF                               ^
+  -D SDLTTF_PLUTOSVG=ON                                ^
   || exit /b 1
 ninja.exe -C %BUILD%\SDL_ttf install || exit /b 1
 
