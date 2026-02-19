@@ -201,6 +201,7 @@ call :clone SDL_mixer       "https://github.com/libsdl-org/SDL_mixer"       main
 call :clone SDL_ttf         "https://github.com/libsdl-org/SDL_ttf"         main || exit /b 1
 call :clone SDL_rtf         "https://github.com/libsdl-org/SDL_rtf"         main || exit /b 1
 call :clone SDL_net         "https://github.com/libsdl-org/SDL_net"         main || exit /b 1
+call :clone SDL_sound       "https://github.com/icculus/SDL_sound"          main || exit /b 1
 call :clone SDL_shadercross "https://github.com/libsdl-org/SDL_shadercross" main || exit /b 1
 call :clone SDL2_compat     "https://github.com/libsdl-org/sdl2-compat"     main || exit /b 1
 
@@ -1002,6 +1003,33 @@ cmake.exe %CMAKE_COMMON_ARGS%      ^
 ninja.exe -C %BUILD%\SDL_net install || exit /b 1
 
 rem
+rem SDL_sound
+rem
+
+cmake.exe %CMAKE_COMMON_ARGS%      ^
+  -S %SOURCE%\SDL_sound            ^
+  -B %BUILD%\SDL_sound             ^
+  -D CMAKE_INSTALL_PREFIX=%OUTPUT% ^
+  -D CMAKE_PREFIX_PATH=%DEPEND%    ^
+  -D SDLSOUND_BUILD_STATIC=OFF     ^
+  -D SDLSOUND_BUILD_SHARED=ON      ^
+  -D SDLSOUND_BUILD_TEST=OFF       ^
+  -D SDLSOUND_BUILD_DOCS=OFF       ^
+  -D SDLSOUND_DECODER_WAV=ON       ^
+  -D SDLSOUND_DECODER_AIFF=ON      ^
+  -D SDLSOUND_DECODER_AU=ON        ^
+  -D SDLSOUND_DECODER_VOC=ON       ^
+  -D SDLSOUND_DECODER_FLAC=ON      ^
+  -D SDLSOUND_DECODER_VORBIS=ON    ^
+  -D SDLSOUND_DECODER_RAW=ON       ^
+  -D SDLSOUND_DECODER_SHN=ON       ^
+  -D SDLSOUND_DECODER_MODPLUG=ON   ^
+  -D SDLSOUND_DECODER_MP3=ON       ^
+  -D SDLSOUND_DECODER_MIDI=ON      ^
+  || exit /b 1
+ninja.exe -C %BUILD%\SDL_sound install || exit /b 1
+
+rem
 rem SDL_shadercross
 rem
 
@@ -1075,6 +1103,7 @@ set /p SDL_MIXER_COMMIT=<%SOURCE%\SDL_mixer\.git\refs\heads\main
 set /p SDL_TTF_COMMIT=<%SOURCE%\SDL_ttf\.git\refs\heads\main
 set /p SDL_RTF_COMMIT=<%SOURCE%\SDL_rtf\.git\refs\heads\main
 set /p SDL_NET_COMMIT=<%SOURCE%\SDL_net\.git\refs\heads\main
+set /p SDL_SOUND_COMMIT=<%SOURCE%\SDL_sound\.git\refs\heads\main
 set /p SDL_SHADERCROSS_COMMIT=<%SOURCE%\SDL_shadercross\.git\refs\heads\main
 set /p SDL2_COMPAT_COMMIT=<%SOURCE%\SDL2_compat\.git\refs\heads\main
 
@@ -1084,10 +1113,11 @@ echo SDL_mixer       %SDL_MIXER_COMMIT%       >> %OUTPUT%\commits.txt
 echo SDL_ttf         %SDL_TTF_COMMIT%         >> %OUTPUT%\commits.txt
 echo SDL_rtf         %SDL_RTF_COMMIT%         >> %OUTPUT%\commits.txt
 echo SDL_net         %SDL_NET_COMMIT%         >> %OUTPUT%\commits.txt
+echo SDL_sound       %SDL_SOUND_COMMIT%       >> %OUTPUT%\commits.txt
 echo SDL_shadercross %SDL_SHADERCROSS_COMMIT% >> %OUTPUT%\commits.txt
 echo SDL2_compat     %SDL2_COMPAT_COMMIT%     >> %OUTPUT%\commits.txt
 
-for %%F in (SDL3_mixer SDL3_image SDL3_mixer SDL3_net SDL3_rtf SDL3_ttf SDL3_shadercross) do (
+for %%F in (SDL3_mixer SDL3_image SDL3_mixer SDL3_net SDL3_sound SDL3_rtf SDL3_ttf SDL3_shadercross) do (
   move %OUTPUT%\include\%%F\*.h %OUTPUT%\include\SDL3\ 1>nul 2>nul
   rd /s /q %OUTPUT%\include\%%F 1>nul 2>nul
 )
@@ -1116,6 +1146,7 @@ if "%GITHUB_WORKFLOW%" neq "" (
   echo SDL_TTF_COMMIT=%SDL_TTF_COMMIT%>>"%GITHUB_OUTPUT%"
   echo SDL_RTF_COMMIT=%SDL_RTF_COMMIT%>>"%GITHUB_OUTPUT%"
   echo SDL_NET_COMMIT=%SDL_NET_COMMIT%>>"%GITHUB_OUTPUT%"
+  echo SDL_SOUND_COMMIT=%SDL_SOUND_COMMIT%>>"%GITHUB_OUTPUT%"
   echo SDL_SHADERCROSS_COMMIT=%SDL_SHADERCROSS_COMMIT%>>"%GITHUB_OUTPUT%"
   echo SDL2_COMPAT_COMMIT=%SDL2_COMPAT_COMMIT%>>"%GITHUB_OUTPUT%"
 )
