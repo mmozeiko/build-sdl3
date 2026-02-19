@@ -989,8 +989,6 @@ rem
 rem SDL_net
 rem
 
-set CL=-DSDL_ENABLE_OLD_NAMES
-
 cmake.exe %CMAKE_COMMON_ARGS%      ^
   -S %SOURCE%\SDL_net              ^
   -B %BUILD%\SDL_net               ^
@@ -1002,8 +1000,6 @@ cmake.exe %CMAKE_COMMON_ARGS%      ^
   -D SDLNET_SAMPLES=OFF            ^
   || exit /b 1
 ninja.exe -C %BUILD%\SDL_net install || exit /b 1
-
-set CL=
 
 rem
 rem SDL_shadercross
