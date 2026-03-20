@@ -30,7 +30,7 @@ jobs:
     steps:
 
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: build
         id: build
@@ -38,7 +38,7 @@ jobs:
         run: call build.cmd ${{ matrix.arch }}
 
       - name: upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: SDL3-${{ matrix.arch }}-${{ steps.build.outputs.OUTPUT_DATE }}
           path: SDL3-${{ matrix.arch }}-${{ steps.build.outputs.OUTPUT_DATE }}.zip
@@ -68,7 +68,7 @@ jobs:
           gh release create ${{ needs.build.outputs.OUTPUT_DATE }} -R "${GITHUB_REPOSITORY}" -t '${{ needs.build.outputs.OUTPUT_DATE }}' -F notes.txt
 
       - name: get artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: SDL3-*-${{ needs.build.outputs.OUTPUT_DATE }}
           merge-multiple: true
