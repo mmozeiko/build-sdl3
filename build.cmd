@@ -926,6 +926,7 @@ cmake.exe %CMAKE_COMMON_ARGS%                            ^
   -D SDLMIXER_WERROR=OFF                                 ^
   -D SDLMIXER_STRICT=ON                                  ^
   -D SDLMIXER_TESTS=OFF                                  ^
+  -D SDLMIXER_EXAMPLES=OFF                               ^
   -D SDLMIXER_AIFF=ON                                    ^
   -D SDLMIXER_WAVE=ON                                    ^
   -D SDLMIXER_VOC=ON                                     ^
