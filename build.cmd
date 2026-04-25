@@ -269,9 +269,10 @@ cmake.exe %CMAKE_COMMON_ARGS%      ^
   -D ZLIB_BUILD_SHARED=OFF         ^
   -D ZLIB_BUILD_TESTING=OFF        ^
   || exit /b 1
+rd /s /q depend-%TARGET_ARCH%\lib\cmake\zlib 1>nul 2>nul
 ninja.exe -C %BUILD%\zlib-%ZLIB_VERSION% install || exit /b 1
 
-call git apply -p1 --directory=depend-%TARGET_ARCH% patches/zlib-static.patch || exit /b 1
+call git apply -p1 --directory=depend-%TARGET_ARCH% patches\zlib-static.patch || exit /b 1
 
 rem
 rem bzip2
@@ -346,9 +347,10 @@ cmake.exe %CMAKE_COMMON_ARGS%         ^
   -D PNG_HARDWARE_OPTIMIZATIONS=ON    ^
   -D ZLIB_LIBRARY=%DEPEND%\lib\zs.lib ^
   || exit /b 1
+rd /s /q depend-%TARGET_ARCH%\lib\cmake\PNG 1>nul 2>nul
 ninja.exe -C %BUILD%\libpng-%LIBPNG_VERSION% install || exit /b 1
 
-call git apply -p1 --directory=depend-%TARGET_ARCH% patches/libpng-zlib-static.patch || exit /b 1
+call git apply --unidiff-zero -p1 --directory=depend-%TARGET_ARCH% patches\libpng-zlib-static.patch || exit /b 1
 
 rem
 rem libjpeg-turbo
