@@ -311,6 +311,10 @@ cmake.exe %CMAKE_COMMON_ARGS%      ^
   -D BUILD_SHARED_LIBS=OFF         ^
   -D XZ_NLS=OFF                    ^
   -D XZ_THREADS=vista              ^
+  -D XZ_TOOL_XZ=OFF                ^
+  -D XZ_TOOL_XZDEC=OFF             ^
+  -D XZ_TOOL_LZMADEC=OFF           ^
+  -D XZ_TOOL_LZMAINFO=OFF          ^
   || exit /b 1
 ninja.exe -C %BUILD%\xz-%XZ_VERSION% install || exit /b 1
 
@@ -379,6 +383,7 @@ cmake.exe %CMAKE_COMMON_ARGS%                      ^
   -D WITH_JPEG8=ON                                 ^
   -D WITH_TURBOJPEG=OFF                            ^
   -D WITH_JAVA=OFF                                 ^
+  -D WITH_TOOLS=OFF                                ^
   %LIBJPEG_TURBO_CMAKE_EXTRA%                      ^
   || exit /b 1
 ninja.exe -C %BUILD%\libjpeg-turbo-%LIBJPEGTURBO_VERSION% install || exit /b 1
