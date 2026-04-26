@@ -36,6 +36,8 @@ set ZLIB_VERSION=1.3.2
 set BZIP2_VERSION=1.0.8
 set XZ_VERSION=5.8.3
 set ZSTD_VERSION=1.5.7
+set BROTLI_VERSION=1.2.0
+set HWY_VERSION=1.4.0
 set LIBPNG_VERSION=1.6.58
 set LIBJPEGTURBO_VERSION=3.1.4.1
 set JBIG_VERSION=2.1
@@ -63,8 +65,6 @@ set PLUTOSVG_VERSION=0.0.7
 
 rem libjxl dependencies
 
-set BROTLI_COMMIT=36533a8
-set HIGHWAY_COMMIT=457c891
 set SKCMS_COMMIT=b2e6926
 
 rem
@@ -152,6 +152,11 @@ where /q ninja.exe || (
 )
 ninja.exe --version || exit /b 1
 
+where /q clang-cl.exe || (
+  echo ERROR: "clang-cl.exe" not found, required for "dav1d" and "libjxl"
+  exit /b 1
+)
+
 rem
 rem Downloading & Unpacking
 rem
@@ -160,6 +165,8 @@ call :get "https://github.com/madler/zlib/releases/download/v%ZLIB_VERSION%/zlib
 call :get "https://sourceware.org/pub/bzip2/bzip2-%BZIP2_VERSION%.tar.gz"                                                                                    || exit /b 1
 call :get "https://github.com/tukaani-project/xz/releases/download/v%XZ_VERSION%/xz-%XZ_VERSION%.tar.xz"                                                     || exit /b 1
 call :get "https://github.com/facebook/zstd/releases/download/v%ZSTD_VERSION%/zstd-%ZSTD_VERSION%.tar.gz"                                                    || exit /b 1
+call :get "https://github.com/google/brotli/archive/refs/tags/v%BROTLI_VERSION%.tar.gz" brotli-%BROTLI_VERSION%.tar.gz                                       || exit /b 1
+call :get "https://github.com/google/highway/releases/download/%HWY_VERSION%/highway-%HWY_VERSION%.tar.gz"                                                   || exit /b 1
 call :get "https://download.sourceforge.net/libpng/libpng-%LIBPNG_VERSION%.tar.xz"                                                                           || exit /b 1
 call :get "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/%LIBJPEGTURBO_VERSION%/libjpeg-turbo-%LIBJPEGTURBO_VERSION%.tar.gz"              || exit /b 1
 call :get "https://www.cl.cam.ac.uk/~mgk25/jbigkit/download/jbigkit-%JBIG_VERSION%.tar.gz"                                                                   || exit /b 1
@@ -185,15 +192,7 @@ call :get "https://github.com/dbry/WavPack/releases/download/%WAVPACK_VERSION%/w
 call :get "https://github.com/sammycage/plutovg/archive/refs/tags/v%PLUTOVG_VERSION%.tar.gz" plutovg-%PLUTOVG_VERSION%.tar.gz                                || exit /b 1
 call :get "https://github.com/sammycage/plutosvg/archive/refs/tags/v%PLUTOSVG_VERSION%.tar.gz" plutosvg-%PLUTOVG_VERSION%.tar.gz                             || exit /b 1
 
-rd /s /q %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
-rd /s /q %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
-
-call :get "https://github.com/google/brotli/tarball/%BROTLI_COMMIT%"           google-brotli-%BROTLI_COMMIT%.tar.gz                                           || exit /b 1
-call :get "https://github.com/google/highway/tarball/%HIGHWAY_COMMIT%"         google-highway-%HIGHWAY_COMMIT%.tar.gz                                         || exit /b 1
 call :get "https://skia.googlesource.com/skcms/+archive/%SKCMS_COMMIT%.tar.gz" skcms-%SKCMS_COMMIT%.tar.gz %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\skcms || exit /b 1
-
-move %SOURCE%\google-brotli-%BROTLI_COMMIT%   %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\brotli  1>nul 2>nul
-move %SOURCE%\google-highway-%HIGHWAY_COMMIT% %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\highway 1>nul 2>nul
 
 call :clone SDL             "https://github.com/libsdl-org/SDL"             main || exit /b 1
 call :clone SDL_image       "https://github.com/libsdl-org/SDL_image"       main || exit /b 1
@@ -247,17 +246,15 @@ set CMAKE_COMMON_ARGS=-Wno-dev                ^
   -D CMAKE_POLICY_DEFAULT_CMP0091=NEW         ^
   -D CMAKE_POLICY_DEFAULT_CMP0092=NEW         ^
   -D CMAKE_POLICY_VERSION_MINIMUM=3.5         ^
-  -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+  -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
+  -D CMAKE_SYSTEM_NAME=Windows
 
 if "%TARGET_ARCH%" equ "arm64" (
-  set CMAKE_COMMON_ARGS=%CMAKE_COMMON_ARGS% ^
-    -DCMAKE_SYSTEM_NAME=Windows             ^
-    -DCMAKE_SYSTEM_PROCESSOR=arm64
-
-  where /q clang-cl.exe || (
-    echo ERROR: "clang-cl.exe" not found, required to build "dav1d" and "libjxl" with neon intrinsic optimizations
-    exit /b 1
-  )
+  set CMAKE_COMMON_ARGS=%CMAKE_COMMON_ARGS% -D CMAKE_SYSTEM_PROCESSOR=aarch64
+  set CMAKE_CLANG_TARGET=--target=aarch64-pc-windows-msvc
+) else (
+  set CMAKE_COMMON_ARGS=%CMAKE_COMMON_ARGS% -D CMAKE_SYSTEM_PROCESSOR=x86_64
+  set CMAKE_CLANG_TARGET=--target=x86_64-pc-windows-msvc
 )
 
 rem
@@ -337,6 +334,34 @@ cmake.exe %CMAKE_COMMON_ARGS%                 ^
   -D ZSTD_USE_STATIC_RUNTIME=ON               ^
   || exit /b 1
 ninja.exe -C %BUILD%\zstd-%ZSTD_VERSION% install || exit /b 1
+
+rem
+rem brotli
+rem
+
+cmake.exe %CMAKE_COMMON_ARGS%          ^
+  -S %SOURCE%\brotli-%BROTLI_VERSION%  ^
+  -B %BUILD%\brotli-%BROTLI_VERSION%   ^
+  -D CMAKE_INSTALL_PREFIX=%DEPEND%     ^
+  -D BUILD_SHARED_LIBS=OFF             ^
+  -D BROTLI_BUILD_TOOLS=OFF            ^
+  -D BROTLI_DISABLE_TESTS=ON           ^
+  || exit /b 1
+ninja.exe -C %BUILD%\brotli-%BROTLI_VERSION% install || exit /b 1
+
+rem
+rem highway
+rem
+
+cmake.exe %CMAKE_COMMON_ARGS%               ^
+  -S %SOURCE%\highway-%HWY_VERSION%         ^
+  -B %BUILD%\highway-%HWY_VERSION%          ^
+  -D CMAKE_INSTALL_PREFIX=%DEPEND%          ^
+  -D HWY_ENABLE_CONTRIB=OFF                 ^
+  -D HWY_ENABLE_EXAMPLES=OFF                ^
+  -D HWY_ENABLE_TESTS=OFF                   ^
+  || exit /b 1
+ninja.exe -C %BUILD%\highway-%HWY_VERSION% install || exit /b 1
 
 rem
 rem libpng
@@ -518,22 +543,21 @@ rem
 rem dav1d
 rem
 
-meson.exe setup --reconfigure                 ^
-  --prefix=%DEPEND%                           ^
-  --default-library=static                    ^
-  --buildtype=release                         ^
-  --cross-file "%~dp0meson-%TARGET_ARCH%.txt" ^
-  -Db_ndebug=true                             ^
-  -Db_vscrt=mt                                ^
-  -Denable_asm=true                           ^
-  -Denable_tools=false                        ^
-  -Denable_examples=false                     ^
-  -Denable_tests=false                        ^
-  -Denable_docs=false                         ^
-  -Dlogging=false                             ^
-  %DAV1D_MESON_EXTRA%                         ^
-  %BUILD%\dav1d-%DAV1D_VERSION%               ^
-  %SOURCE%\dav1d-%DAV1D_VERSION%              ^
+meson.exe setup --reconfigure                       ^
+  --prefix=%DEPEND%                                 ^
+  --default-library=static                          ^
+  --buildtype=release                               ^
+  --cross-file "%~dp0meson\meson-%TARGET_ARCH%.txt" ^
+  -Db_ndebug=true                                   ^
+  -Db_vscrt=mt                                      ^
+  -Denable_asm=true                                 ^
+  -Denable_tools=false                              ^
+  -Denable_examples=false                           ^
+  -Denable_tests=false                              ^
+  -Denable_docs=false                               ^
+  -Dlogging=false                                   ^
+  %BUILD%\dav1d-%DAV1D_VERSION%                     ^
+  %SOURCE%\dav1d-%DAV1D_VERSION%                    ^
   || exit /b 1
 ninja.exe -C %BUILD%\dav1d-%DAV1D_VERSION% install || exit /b 1
 
@@ -563,23 +587,20 @@ ninja.exe -C %BUILD%\libavif-%LIBAVIF_VERSION% install || exit /b 1
 
 rem
 rem libjxl
+rem dependencies: brotli, hwy
 rem
 
-set LIBJXL_EXTRA_CFLAGS=-w -DJXL_STATIC_DEFINE
-
-if "%TARGET_ARCH%" equ "arm64" (
-  set LIBJXL_CMAKE_EXTRA=-DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe
-  set LIBJXL_EXTRA_CFLAGS=%LIBJXL_EXTRA_CFLAGS% --target=aarch64-win32-msvc
-  set LINK_OLD=%LINK%
-  set LINK=
-)
+set LIBJXL_EXTRA_FLAGS=%CMAKE_CLANG_TARGET% -w -DJXL_STATIC_DEFINE
 
 cmake.exe %CMAKE_COMMON_ARGS%                                                                   ^
   -S %SOURCE%\libjxl-%LIBJXL_VERSION%                                                           ^
   -B %BUILD%\libjxl-%LIBJXL_VERSION%                                                            ^
   -D CMAKE_INSTALL_PREFIX=%DEPEND%                                                              ^
-  -D CMAKE_C_FLAGS="%LIBJXL_EXTRA_CFLAGS%"                                                      ^
-  -D CMAKE_CXX_FLAGS="%LIBJXL_EXTRA_CFLAGS% -EHsc \"-D_STL_EXTRA_DISABLED_WARNINGS=4244 4267\"" ^
+  -D CMAKE_C_COMPILER=clang-cl.exe                                                              ^
+  -D CMAKE_CXX_COMPILER=clang-cl.exe                                                            ^
+  -D CMAKE_LINKER=link.exe                                                                      ^
+  -D CMAKE_C_FLAGS="%LIBJXL_EXTRA_FLAGS%"                                                       ^
+  -D CMAKE_CXX_FLAGS="%LIBJXL_EXTRA_FLAGS% -EHsc \"-D_STL_EXTRA_DISABLED_WARNINGS=4244 4267\""  ^
   -D BUILD_SHARED_LIBS=OFF                                                                      ^
   -D BUILD_TESTING=OFF                                                                          ^
   -D JPEGXL_STATIC=ON                                                                           ^
@@ -604,13 +625,10 @@ cmake.exe %CMAKE_COMMON_ARGS%                                                   
   -D JPEGXL_ENABLE_TRANSCODE_JPEG=OFF                                                           ^
   -D JPEGXL_ENABLE_AVX512=ON                                                                    ^
   -D JPEGXL_ENABLE_AVX512_ZEN4=ON                                                               ^
-  %LIBJXL_CMAKE_EXTRA%                                                                          ^
+  -D JPEGXL_FORCE_SYSTEM_BROTLI=ON                                                              ^
+  -D JPEGXL_FORCE_SYSTEM_HWY=ON                                                                 ^
   || exit /b 1
 ninja.exe -C %BUILD%\libjxl-%LIBJXL_VERSION% install || exit /b 1
-
-if "%TARGET_ARCH%" equ "arm64" (
-  set LINK=%LINK_OLD%
-)
 
 rem
 rem harfbuzz (dummy build, just to have dependency for freetype)
@@ -1069,6 +1087,8 @@ if "%HOST_ARCH%" neq "%TARGET_ARCH%" (
 
   endlocal
   set PATH=%BUILD%\SDL_shadercross\external\DirectXShaderCompiler-native\bin;!PATH!
+) else (
+  set PATH=%BUILD%\SDL_shadercross\external\DirectXShaderCompiler\bin;!PATH!
 )
 
 cmake.exe %CMAKE_COMMON_ARGS%             ^

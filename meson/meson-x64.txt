@@ -1,6 +1,6 @@
 [binaries]
-c = 'cl.exe'
-cpp = 'cl.exe'
+c = ['clang-cl.exe', '--target=x86_64-pc-windows-msvc']
+cpp = ['clang-cl.exe', '--target=x86_64-pc-windows-msvc']
 
 [host_machine]
 system = 'windows'
