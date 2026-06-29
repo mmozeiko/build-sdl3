@@ -28,7 +28,7 @@ rem
 rem Library Versions
 rem
 
-set NASM_VERSION=3.01
+set NASM_VERSION=3.02
 set YASM_VERSION=1.3.0
 set NINJA_VERSION=1.13.1
 
