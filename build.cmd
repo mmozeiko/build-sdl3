@@ -1233,10 +1233,14 @@ if not exist %ARCHIVE% (
   echo Downloading %DNAME%
   curl.exe --retry 5 --retry-all-errors -sfLo %ARCHIVE% %1 || exit /b 1
 )
-for %%N in ("%ARCHIVE%") do set NAME=%%~nN
-if exist %NAME% (
+for %%N in ("%ARCHIVE%") do (
+  set NAME=%%~nN
+  for %%E in ("!NAME!") do set EXT=%%~xE
+)
+if "%EXT%" equ ".tar" for %%N in ("%NAME%") do set NAME=%%~nN
+if exist %SOURCE%\%NAME% (
   echo Removing %NAME%
-  rd /s /q %NAME%
+  rd /s /q %SOURCE%\%NAME%
 )
 echo Unpacking %DNAME%
 if "%3" equ "" (
@@ -1245,7 +1249,12 @@ if "%3" equ "" (
   if not exist "%3" mkdir "%3"
   pushd %3
 )
-tar.exe -xf %ARCHIVE% || exit /b 1
+tar.exe -xf %ARCHIVE%
+if %ERRORLEVEL% neq 0 (
+  rem because of https://github.com/libarchive/libarchive/issues/3063
+  if "%NAME%" equ "flac-%FLAC_VERSION%" ( popd & exit /b 0 )
+  exit /b 1
+)
 popd
 goto :eof
 
