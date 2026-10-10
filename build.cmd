@@ -45,7 +45,7 @@ set LERC_VERSION=4.2.0
 set TIFF_VERSION=4.7.2
 set LIBWEBP_VERSION=1.6.0
 set AOM_VERSION=3.15.2
-set LIBYUV_VERSION=464c51a
+set LIBYUV_VERSION=644251f25
 set DAV1D_VERSION=1.5.4
 set LIBAVIF_VERSION=1.4.2
 set LIBJXL_VERSION=0.12.0
@@ -214,7 +214,6 @@ rem
 
 call git apply -p1 --directory=source/SDL_shadercross                                patches/SDL_shadercross.patch       || exit /b 1
 call git apply -p1 --directory=source/SDL_shadercross/external/DirectXShaderCompiler patches/DirectXShaderCompiler.patch || exit /b 1
-call git apply -p1 --directory=source/libyuv-%LIBYUV_VERSION%                        patches/libyuv.patch                || exit /b 1
 call git apply -p1 --directory=source/libjpeg-turbo-%LIBJPEGTURBO_VERSION%           patches/libjpeg-turbo.patch         || exit /b 1
 call git apply -p1 --directory=source/flac-%FLAC_VERSION%                            patches/flac.patch                  || exit /b 1
 
