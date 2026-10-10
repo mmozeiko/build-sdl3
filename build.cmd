@@ -190,7 +190,7 @@ call :get "https://github.com/libxmp/libxmp/releases/download/libxmp-%LIBXMP_VER
 call :get "https://github.com/libgme/game-music-emu/archive/refs/tags/%LIBGME_VERSION%.tar.gz" libgme-%LIBGME_VERSION%.tar.gz                                || exit /b 1
 call :get "https://github.com/dbry/WavPack/releases/download/%WAVPACK_VERSION%/wavpack-%WAVPACK_VERSION%.tar.xz"                                             || exit /b 1
 call :get "https://github.com/sammycage/plutovg/archive/refs/tags/v%PLUTOVG_VERSION%.tar.gz" plutovg-%PLUTOVG_VERSION%.tar.gz                                || exit /b 1
-call :get "https://github.com/sammycage/plutosvg/archive/refs/tags/v%PLUTOSVG_VERSION%.tar.gz" plutosvg-%PLUTOVG_VERSION%.tar.gz                             || exit /b 1
+call :get "https://github.com/sammycage/plutosvg/archive/refs/tags/v%PLUTOSVG_VERSION%.tar.gz" plutosvg-%PLUTOSVG_VERSION%.tar.gz                            || exit /b 1
 
 call :get "https://skia.googlesource.com/skcms/+archive/%SKCMS_COMMIT%.tar.gz" skcms-%SKCMS_COMMIT%.tar.gz %SOURCE%\libjxl-%LIBJXL_VERSION%\third_party\skcms || exit /b 1
 
