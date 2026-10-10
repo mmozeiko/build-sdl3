@@ -1088,6 +1088,7 @@ if "%HOST_ARCH%" neq "%TARGET_ARCH%" (
     -D LLVM_ENABLE_WARNINGS=OFF                                      ^
     -D LLVM_ENABLE_EH=ON                                             ^
     -D LLVM_ENABLE_RTTI=ON                                           ^
+    -D CLANG_FORMAT_EXE=NOTFOUND                                     ^
     || exit /b 1
   ninja.exe -C %BUILD%\SDL_shadercross\external\DirectXShaderCompiler-native llvm-tblgen clang-tblgen || exit /b 1
 
@@ -1150,7 +1151,7 @@ copy /Y %BUILD%\SDL_rtf\SDL3_rtf.stripped.pdb                 %OUTPUT%\bin\SDL3_
 copy /Y %BUILD%\SDL_net\SDL3_net.stripped.pdb                 %OUTPUT%\bin\SDL3_net.pdb         1>nul 2>nul
 copy /Y %BUILD%\SDL_sound\SDL3_sound.stripped.pdb             %OUTPUT%\bin\SDL3_sound.pdb       1>nul 2>nul
 copy /Y %BUILD%\SDL_shadercross\SDL3_shadercross.stripped.pdb %OUTPUT%\bin\SDL3_shadercross.pdb 1>nul 2>nul
-copy /Y %BUILD%\SDL_shadercross\shadercross.stripped.pdb      %OUTPUT%\bin\shadercross.exe      1>nul 2>nul
+copy /Y %BUILD%\SDL_shadercross\shadercross.stripped.pdb      %OUTPUT%\bin\shadercross.exe.pdb  1>nul 2>nul
 copy /Y %BUILD%\SDL2_compat\SDL2.stripped.pdb                 %OUTPUT%\bin\SDL2.pdb             1>nul 2>nul
 
 rem
