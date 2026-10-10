@@ -851,11 +851,6 @@ rem
 rem plutovg
 rem
 
-rem workaround for VS2026 crashing, see https://developercommunity.visualstudio.com/t/MSVC-CLexe-Release-build-hits-internal/11089236
-rem can be removed once github updates VS2026 to 18.7.0
-setlocal
-set CL=%CL% /d2Qslpvec-
-
 cmake.exe %CMAKE_COMMON_ARGS%           ^
   -S %SOURCE%\plutovg-%PLUTOVG_VERSION% ^
   -B %BUILD%\plutovg-%PLUTOVG_VERSION%  ^
