@@ -39,7 +39,7 @@ set ZSTD_VERSION=1.5.7
 set BROTLI_VERSION=1.2.0
 set HWY_VERSION=1.4.0
 set LIBPNG_VERSION=1.6.59
-set LIBJPEGTURBO_VERSION=3.2.0
+set LIBJPEGTURBO_VERSION=3.2.1
 set JBIG_VERSION=2.2
 set LERC_VERSION=4.2.0
 set TIFF_VERSION=4.7.2
@@ -406,8 +406,9 @@ cmake.exe %CMAKE_COMMON_ARGS%                      ^
   -D WITH_JPEG7=ON                                 ^
   -D WITH_JPEG8=ON                                 ^
   -D WITH_TURBOJPEG=OFF                            ^
-  -D WITH_JAVA=OFF                                 ^
+  -D WITH_JNA=OFF                                  ^
   -D WITH_TOOLS=OFF                                ^
+  -D WITH_TESTS=OFF                                ^
   %LIBJPEG_TURBO_CMAKE_EXTRA%                      ^
   || exit /b 1
 ninja.exe -C %BUILD%\libjpeg-turbo-%LIBJPEGTURBO_VERSION% install || exit /b 1
