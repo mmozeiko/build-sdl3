@@ -2,10 +2,7 @@ diff --git a/lib/cmake/zlib/ZLIBConfig.cmake b/lib/cmake/zlib/ZLIBConfig.cmake
 index 94fa6f8..05405e2 100644
 --- a/lib/cmake/zlib/ZLIBConfig.cmake
 +++ b/lib/cmake/zlib/ZLIBConfig.cmake
-@@ -24,7 +24,7 @@ endmacro()
- 
- ####################################################################################
- 
+@@ -1,4 +1,4 @@
 -set(_ZLIB_supported_components "shared" "static")
 +set(_ZLIB_supported_components "static")
  
