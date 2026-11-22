@@ -590,14 +590,24 @@ rem libjxl
 rem dependencies: brotli, hwy
 rem
 
-set LIBJXL_EXTRA_FLAGS=%CMAKE_CLANG_TARGET% -w -DJXL_STATIC_DEFINE
+if "%TARGET_ARCH%" equ "x64" (
+  set LIBJXL_CC=cl.exe
+  set LIBJXL_EXTRA_FLAGS=-w -DJXL_STATIC_DEFINE
+) else if "%TARGET_ARCH%" equ "arm64" (
+  if "%GITHUB_WORKFLOW%" neq "" (
+    set LIBJXL_CC="C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\Llvm\x64\bin\clang-cl.exe"
+  ) else (
+    set LIBJXL_CC=clang-cl.exe
+  )
+  set LIBJXL_EXTRA_FLAGS=%CMAKE_CLANG_TARGET% -w -DJXL_STATIC_DEFINE
+)
 
 cmake.exe %CMAKE_COMMON_ARGS%                                                                   ^
   -S %SOURCE%\libjxl-%LIBJXL_VERSION%                                                           ^
   -B %BUILD%\libjxl-%LIBJXL_VERSION%                                                            ^
   -D CMAKE_INSTALL_PREFIX=%DEPEND%                                                              ^
-  -D CMAKE_C_COMPILER=clang-cl.exe                                                              ^
-  -D CMAKE_CXX_COMPILER=clang-cl.exe                                                            ^
+  -D CMAKE_C_COMPILER=%LIBJXL_CC%                                                               ^
+  -D CMAKE_CXX_COMPILER=%LIBJXL_CC%                                                             ^
   -D CMAKE_LINKER=link.exe                                                                      ^
   -D CMAKE_C_FLAGS="%LIBJXL_EXTRA_FLAGS%"                                                       ^
   -D CMAKE_CXX_FLAGS="%LIBJXL_EXTRA_FLAGS% -EHsc \"-D_STL_EXTRA_DISABLED_WARNINGS=4244 4267\""  ^
@@ -608,7 +618,6 @@ cmake.exe %CMAKE_COMMON_ARGS%                                                   
   -D JPEGXL_ENABLE_FUZZERS=OFF                                                                  ^
   -D JPEGXL_ENABLE_DEVTOOLS=OFF                                                                 ^
   -D JPEGXL_ENABLE_TOOLS=OFF                                                                    ^
-  -D JPEGXL_ENABLE_JPEGLI=OFF                                                                   ^
   -D JPEGXL_ENABLE_DOXYGEN=OFF                                                                  ^
   -D JPEGXL_ENABLE_MANPAGES=OFF                                                                 ^
   -D JPEGXL_ENABLE_BENCHMARK=OFF                                                                ^
@@ -623,8 +632,8 @@ cmake.exe %CMAKE_COMMON_ARGS%                                                   
   -D JPEGXL_ENABLE_PLUGINS=OFF                                                                  ^
   -D JPEGXL_ENABLE_COVERAGE=OFF                                                                 ^
   -D JPEGXL_ENABLE_TRANSCODE_JPEG=OFF                                                           ^
-  -D JPEGXL_ENABLE_AVX512=ON                                                                    ^
-  -D JPEGXL_ENABLE_AVX512_ZEN4=ON                                                               ^
+  -D JPEGXL_ENABLE_HWY_AVX3=ON                                                                  ^
+  -D JPEGXL_ENABLE_HWY_AVX3_ZEN4=ON                                                             ^
   -D JPEGXL_FORCE_SYSTEM_BROTLI=ON                                                              ^
   -D JPEGXL_FORCE_SYSTEM_HWY=ON                                                                 ^
   || exit /b 1
