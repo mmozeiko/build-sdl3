@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2025
+    runs-on: windows-2025-vs2026
     strategy:
       matrix:
         arch: [x64, arm64]
@@ -30,7 +30,7 @@ jobs:
     steps:
 
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: build
         id: build
@@ -38,7 +38,7 @@ jobs:
         run: call build.cmd ${{ matrix.arch }}
 
       - name: upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: SDL3-${{ matrix.arch }}-${{ steps.build.outputs.OUTPUT_DATE }}
           path: SDL3-${{ matrix.arch }}-${{ steps.build.outputs.OUTPUT_DATE }}.zip
@@ -46,7 +46,7 @@ jobs:
           compression-level: 0
 
   release:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: build
     permissions:
       contents: write
